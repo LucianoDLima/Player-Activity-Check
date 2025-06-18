@@ -1,8 +1,5 @@
 import puppeteer from "puppeteer";
-import {
-  calculateDaysSinceLastActivity,
-  formatRunescapeDate,
-} from "../util/formatDate";
+import { formatRunescapeDate } from "../util/formatDate";
 
 export async function checkPlayerActivity(player: string) {
   const browser = await puppeteer.launch();
