@@ -49,7 +49,6 @@ export async function checkAllPlayersActivity(message: Message) {
         where: { name: member.name },
         data: {
           lastOnline: lastActiveDate,
-          daysOffline: daysSinceLastActivity ?? null,
         },
       });
       console.log(`Updated ${formattedName} with lastOnline: ${lastActiveDate}`);
