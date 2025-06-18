@@ -1,16 +1,14 @@
 import { Message } from "discord.js";
 import prisma from "../prisma/client.prisma";
-import {
-  checkNumberOfPages,
-  scrapeHiscorePage,
-} from "../scraper/getListOfMembersOfficial";
+import { scrapeHiscorePage } from "../scraper/getListOfMembersOfficial";
 import { handleIsException } from "../util/exceptions";
+import { getNumberOfPages } from "../scraper/getNumberOfPages";
 
 /**
  * Fetche all members of the clan and insert them, as well as their ranks, into the database.
  */
 export async function populateClan(message: Message) {
-  const numberOfPages = await checkNumberOfPages();
+  const numberOfPages = await getNumberOfPages();
   const discordMessage = await message.reply(`Fetching all players...`);
 
   // TODO: Just for creating the clan if it doesn't exist. Should probably be removed, we'll see

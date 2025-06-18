@@ -26,7 +26,7 @@ export async function listInactives(message: Message) {
     //
     const inactiveMembers = members.filter((member) => {
       const daysOffline = calculateDaysSinceLastActivity(member.lastOnline);
-      return daysOffline! > 300;
+      return daysOffline! > 30;
     });
 
     if (inactiveMembers.length === 0) {

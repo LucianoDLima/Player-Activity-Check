@@ -1,12 +1,15 @@
-import puppeteer from "puppeteer";
+import puppeteer, { Browser } from "puppeteer";
 import { formatRunescapeDate } from "../util/formatDate";
+import { endpoints } from "../config/endpoints";
 
 export async function checkPlayerActivity(player: string) {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
+  let browser: Browser | null = null;
 
   try {
-    const url = `${process.env.RUNESCAPE_MEMBER}${player}`;
+    browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    const url = `${endpoints.player.RUNEMETRICS_WEB}${player}`;
 
     await page.goto(url, { waitUntil: "domcontentloaded" });
 
@@ -30,6 +33,8 @@ export async function checkPlayerActivity(player: string) {
 
     return null;
   } finally {
-    await browser.close();
+    if (browser) {
+      await browser.close();
+    }
   }
 }
