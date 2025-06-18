@@ -21,9 +21,8 @@ model Member {
   name         String   @unique
   rank         String?
   lastOnline   DateTime?
-  isStale      Boolean  @default(false)
-  daysOffline  Int?
   isException  Boolean  @default(false)
+  isGim        Boolean  @default(false)
 
   clanId       Int
   clan         Clan     @relation(fields: [clanId], references: [id])
