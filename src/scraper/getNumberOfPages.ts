@@ -8,7 +8,7 @@ export async function getNumberOfPages() {
     browser = await puppeteer.launch();
     const page = await browser.newPage();
 
-    const url = endpoints.clan.MEMBERS;
+    const url = endpoints.clan.STATS;
 
     console.log(`Checking for number of members`);
     await page.goto(url, { waitUntil: "domcontentloaded" });
