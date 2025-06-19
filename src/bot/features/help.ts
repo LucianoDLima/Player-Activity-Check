@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
 
+// TODO: Explain better and use embed
 export async function getHelpMessage(message: Message) {
   message.reply(`
 ## Available Commands:

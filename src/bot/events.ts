@@ -1,32 +1,54 @@
-import { Client, Message } from "discord.js";
-import { populateClan } from "../commands/populateClan";
-import { getHelpMessage } from "../commands/help";
-import { listInactives } from "../commands/listInactives";
-import { checkAllPlayersActivity } from "../commands/checkActivity";
+import { Client, EmbedBuilder, Message } from "discord.js";
+import { populateClan } from "./features/populateClan";
+import { getHelpMessage } from "./features/help";
+import { listInactives } from "./features/listInactives";
+import { checkAllPlayersActivity } from "./features/checkActivity";
 
 export function commandsHandler(client: Client) {
   client.on("messageCreate", async (message: Message) => {
-    const command = message.content.trim();
+    const [command, ...args] = message.content.trim().split(" ");
 
-    if (command === "!help") {
-      await getHelpMessage(message);
-    }
+    switch (command) {
+      case "/help":
+        await getHelpMessage(message);
+        break;
 
-    if (command === "!populate") {
-      await populateClan(message);
-    }
+      case "/populate":
+        await populateClan(message);
+        break;
 
-    if (command === "!inactive") {
-      await listInactives(message);
-    }
+      case "/inactive":
+        const days = args.length > 0 ? parseInt(args[0], 10) : 30;
 
-    if (command === "!checkAllPlayers") {
-      await checkAllPlayersActivity(message);
-    }
+        if (isNaN(days) || days < 30) {
+          const embed = new EmbedBuilder({
+            title: `Invalid input (number of days)`,
+            description: [
+              "### Please check the following:",
+              "- Number of days must only contain numbers.",
+              "- Number of days must not be less than **30**.",
+            ].join("\n"),
+            footer: {
+              text: `Don't try to break me. I'm fragile 😢`,
+            },
+            color: 0xff0000,
+            timestamp: new Date(),
+          });
 
-    if (command === "!purge") {
-      // TODO: Implement purge function. It will remove members who are not in the clan anymore.
-      // await purgeMembers();
+          await message.reply({ embeds: [embed] });
+          break;
+        }
+
+        await listInactives(message, days);
+        break;
+
+      case "/checkAllPlayers":
+        await checkAllPlayersActivity(message);
+        break;
+
+      case "/purge":
+        // TODO: Implement purge function. It will remove members who are not in the clan anymore.
+        break;
     }
   });
 }
