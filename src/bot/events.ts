@@ -3,6 +3,7 @@ import { populateClan } from "./features/populateClan";
 import { getHelpMessage } from "./features/help";
 import { listInactives } from "./features/listInactives";
 import { checkAllPlayersActivity } from "./features/checkActivity";
+import { findInvalidPlayers, IncludeType } from "./features/findInvalidPlayers";
 
 export function commandsHandler(client: Client) {
   client.on("messageCreate", async (message: Message) => {
@@ -44,6 +45,18 @@ export function commandsHandler(client: Client) {
 
       case "/checkAllPlayers":
         await checkAllPlayersActivity(message);
+        break;
+
+      case "/invalid":
+        let include: IncludeType | undefined = undefined;
+
+        if (args[0] === "both") {
+          include = "both";
+        } else if (args[0] === "exception") {
+          include = "exception";
+        }
+
+        await findInvalidPlayers(message, include);
         break;
 
       case "/purge":
