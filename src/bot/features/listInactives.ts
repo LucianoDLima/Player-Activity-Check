@@ -1,6 +1,6 @@
-import prisma from "../../prisma/client.prisma";
 import { EmbedBuilder, Message } from "discord.js";
 import { calculateDaysSinceLastActivity } from "../../util/formatDate";
+import { findPlayerByActivity } from "../../db/players";
 
 /**
  * List players inactive for a certain number of days.
@@ -9,14 +9,7 @@ import { calculateDaysSinceLastActivity } from "../../util/formatDate";
  */
 export async function listInactives(message: Message, daysThreshold: number = 30) {
   try {
-    const players = await prisma.member.findMany({
-      where: {
-        lastOnline: {
-          not: null,
-        },
-        isException: false,
-      },
-    });
+    const players = await findPlayerByActivity();
 
     // Find players whose days offline exceeds the days threshold
     const inactivePlayers = players.filter((player) => {

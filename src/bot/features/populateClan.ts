@@ -3,6 +3,7 @@ import prisma from "../../prisma/client.prisma";
 import { scrapeHiscorePage } from "../../scraper/getListOfMembersOfficial";
 import { handleIsException } from "../../util/exceptions";
 import { getNumberOfPages } from "../../scraper/getNumberOfPages";
+import { createPlayer, findPlayerByName } from "../../db/players";
 
 /**
  * Fetch all members of the clan and insert them, as well as their ranks, into the database.
@@ -65,9 +66,7 @@ export async function populateClan(message: Message) {
       // Add scraped users to database, or skip if they're already in it
       for (const player of players) {
         try {
-          const existingPlayer = await prisma.member.findUnique({
-            where: { name: player.name },
-          });
+          const existingPlayer = await findPlayerByName(player.name);
 
           if (existingPlayer) {
             skippedCount++;
@@ -78,14 +77,8 @@ export async function populateClan(message: Message) {
 
           const isException = handleIsException(player.rank);
 
-          await prisma.member.create({
-            data: {
-              name: player.name,
-              rank: player.rank,
-              clanId: clan.id,
-              isException,
-            },
-          });
+          await createPlayer(player.name, player.rank, clan.id, isException);
+
           addedCount++;
 
           console.log(`Inserted: ${player.name} - ${player.rank}`);
@@ -102,7 +95,7 @@ export async function populateClan(message: Message) {
           description: [
             `### PROCESS COMPLETE!`,
             `Players are skipped if they already exist in the database.`,
-            ``,
+            `\n`,
             `Players skipped: ${skippedCount}`,
             `Players added: ${addedCount}`,
           ].join("\n"),
@@ -113,5 +106,9 @@ export async function populateClan(message: Message) {
     });
   } catch (error) {
     console.error("Error populating clan:", error);
+
+    if (discordMessage) {
+      discordMessage?.reply(`Error populating clan: ${error}`);
+    }
   }
 }

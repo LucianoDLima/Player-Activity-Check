@@ -1,16 +1,14 @@
 import { Message } from "discord.js";
-import prisma from "../../prisma/client.prisma";
 import { formatName } from "../../util/formatNames";
 import { checkPlayerActivity } from "../../scraper/checkPlayerActivity";
 import { calculateDaysSinceLastActivity } from "../../util/formatDate";
+import { findAllPlayers, updatePlayerLastOnline } from "../../db/players";
 
 export async function checkAllPlayersActivity(message: Message) {
   try {
-    const allMembers = await prisma.member.findMany({
-      orderBy: { id: "asc" },
-    });
+    const allPlayers = await findAllPlayers();
 
-    const totalMembers = allMembers.length;
+    const totalMembers = allPlayers.length;
     const progressMessage = await message.reply(
       `Checking activity: 0/${totalMembers}`,
     );
@@ -20,7 +18,7 @@ export async function checkAllPlayersActivity(message: Message) {
 
     let current = 1;
 
-    for (const member of allMembers) {
+    for (const member of allPlayers) {
       try {
         if (member.isException) {
           console.log(`Skipping ${member.name} due to rank: ${member.rank}`);
@@ -41,10 +39,7 @@ export async function checkAllPlayersActivity(message: Message) {
         );
 
         if (lastActiveDate) {
-          await prisma.member.update({
-            where: { name: member.name },
-            data: { lastOnline: lastActiveDate },
-          });
+          await updatePlayerLastOnline(member.name, lastActiveDate);
           console.log(`Updated ${formattedName} with lastOnline: ${lastActiveDate}`);
         }
       } catch (memberError) {
