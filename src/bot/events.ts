@@ -2,8 +2,8 @@ import { Client, EmbedBuilder, Message } from "discord.js";
 import { populateClan } from "./features/populateClan";
 import { getHelpMessage } from "./features/help";
 import { listInactives } from "./features/listInactives";
-import { checkAllPlayersActivity } from "./features/checkActivity";
 import { findInvalidPlayers, IncludeType } from "./features/findInvalidPlayers";
+import { scanClanActivity } from "./features/scanClanActivity";
 
 export function commandsHandler(client: Client) {
   client.on("messageCreate", async (message: Message) => {
@@ -16,6 +16,34 @@ export function commandsHandler(client: Client) {
 
       case "/populate":
         await populateClan(message);
+        break;
+
+      case "/scan":
+        const seconds = args.length > 0 ? parseInt(args[0], 10) : 30;
+        const forceSkip = args.includes("--force-skip");
+
+        if (seconds < 15 && !forceSkip) {
+          await message.reply({
+            embeds: [
+              new EmbedBuilder({
+                title: `Invalid input (number of seconds)`,
+                description: [
+                  "### Please check the following:",
+                  "- Number of seconds must only contain numbers.",
+                  "- Number of seconds must not be less than **15**.",
+                ].join("\n"),
+                footer: {
+                  text: `Don't try to break me. I'm fragile 😢`,
+                },
+                color: 0xff0000,
+                timestamp: new Date(),
+              }),
+            ],
+          });
+          return;
+        }
+
+        await scanClanActivity(message, seconds);
         break;
 
       case "/inactive":
@@ -41,10 +69,6 @@ export function commandsHandler(client: Client) {
         }
 
         await listInactives(message, days);
-        break;
-
-      case "/checkAllPlayers":
-        await checkAllPlayersActivity(message);
         break;
 
       case "/invalid":

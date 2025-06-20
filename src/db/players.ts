@@ -52,9 +52,27 @@ export async function createPlayer(
   });
 }
 
-export async function updatePlayerLastOnline(name: string, lastOnline: Date) {
+export async function updatePlayerData(
+  name: string,
+  lastOnline: Date | null = null,
+  lastActivity: Date | null = null,
+  isGim: boolean = false,
+  runescapeId: number | null = null,
+) {
+  return prisma.member.update({
+    where: { name },
+    data: {
+      lastOnline,
+      lastActivity,
+      isGim,
+      runescapeId,
+    },
+  });
+}
+
+export async function updatePlayerLastActivity(name: string, lastActivity: Date) {
   return prisma.member.update({
     where: { name: name },
-    data: { lastOnline: lastOnline },
+    data: { lastActivity: lastActivity },
   });
 }
