@@ -48,31 +48,37 @@ export async function getHelpMessage(message: Message) {
   let currentPage = 0;
 
   async function updateHelpMessage() {
-    const embed = new EmbedBuilder()
-      .setTitle(`Available Commands`)
-      .setDescription(helpPages[currentPage].join("\n"))
-      .setColor(0x5865f2)
-      .setTimestamp(new Date());
+    const embed = new EmbedBuilder({
+      title: `Available Commands`,
+      description: helpPages[currentPage].join("\n"),
+      color: 0x5865f2,
+      timestamp: new Date(),
+    });
 
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId("prev")
-        .setLabel("⬅️ Previous")
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(currentPage === 0),
+    const row = new ActionRowBuilder<ButtonBuilder>({
+      components: [
+        new ButtonBuilder({
+          custom_id: "prev",
+          label: "⬅️ Previous",
+          style: ButtonStyle.Secondary,
+          disabled: currentPage === 0,
+        }),
 
-      new ButtonBuilder()
-        .setCustomId("page_info")
-        .setLabel(`Page ${currentPage + 1}/${helpPages.length}`)
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(true),
+        new ButtonBuilder({
+          custom_id: "page_info",
+          label: `Page ${currentPage + 1}/${helpPages.length}`,
+          style: ButtonStyle.Secondary,
+          disabled: true,
+        }),
 
-      new ButtonBuilder()
-        .setCustomId("next")
-        .setLabel("Next ➡️")
-        .setStyle(ButtonStyle.Primary)
-        .setDisabled(currentPage === helpPages.length - 1),
-    );
+        new ButtonBuilder({
+          custom_id: "next",
+          label: "Next ➡️",
+          style: ButtonStyle.Primary,
+          disabled: currentPage === helpPages.length - 1,
+        }),
+      ],
+    });
 
     if (sentMessage) {
       await sentMessage.edit({ embeds: [embed], components: [row] });
