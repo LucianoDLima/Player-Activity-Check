@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { EmbedBuilder, Message } from "discord.js";
 import { formatName } from "../../util/formatNames";
 import { calculateDaysSinceLastActivity } from "../../util/formatDate";
 import { findAllPlayers, updatePlayerData } from "../../db/players";
@@ -6,7 +6,7 @@ import { fetchPlayerData } from "../../scraper/fetchPlayerData";
 
 /**
  * Checks the last time a player was online and add it to the database.
- * It does this by getting the last online from the api, and also the last activity tracked, as we are not sure if the last online is reliable on its own yet.
+ * It does this by getting the last online from the api, and also the last activity tracked, as we are not sure if the last online is reliable on its own yet (it seems to be from my testing, but needs more testing just in case).
  * It also stores if the user is a gim player, and their runescape ID in case we can use it to check name changes.
  *
  * @param message The message the discord bot will send.
@@ -16,46 +16,95 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
   try {
     const players = await findAllPlayers();
 
-    const totalMembers = players.length;
-    const progressMessage = await message.reply(
-      `Checking activity: 0/${totalMembers}`,
-    );
-    message.reply(
-      `Checking all players' activity (${totalMembers} members)... Please wait a moment.`,
-    );
+    const allPlayers = players.length;
+    const regularPlayers = players.filter((p) => !p.isException);
+    const exceptionPlayers = players.filter((p) => p.isException);
 
-    let current = 1;
+    const totalRegularPlayers = regularPlayers.length;
+    const totalExceptionPlayers = exceptionPlayers.length;
 
-    for (const player of players) {
+    let discScanningPlayer = "**searching...**";
+    let discAproxTimeLeft = "**calculating...**";
+
+    let currentFailedScans = 0;
+    let currentPlayerSearchCount = 1;
+
+    const discProgressMessage = await message.reply({
+      embeds: [
+        new EmbedBuilder({
+          title: `Clan Activity Scan`,
+          description: [
+            `### Updating players data`,
+            `Please wait a moment, this may take a while. Players on the exception list will not be scammed.`,
+            `- Total members: **${allPlayers}**`,
+            `- On exception list: **${totalExceptionPlayers}**`,
+            `- Players in queue: **0/${totalRegularPlayers}**`,
+            `- Scanning player: **${discScanningPlayer}**`,
+            `- Failed scans: **${currentFailedScans}**`,
+            `*In case of failed scans, check the console.*`,
+          ].join("\n"),
+          footer: {
+            text: `Approx time left: ${discAproxTimeLeft}`,
+          },
+          color: 0xff0000,
+        }),
+      ],
+    });
+
+    for (const player of regularPlayers) {
       try {
-        if (player.isException) {
-          console.log(`Skipping ${player.name} due to rank: ${player.rank}`);
-          current++;
+        discScanningPlayer = player.name;
 
-          continue;
-        }
+        const aproxTimeLeft = Math.floor((totalRegularPlayers * (secs + 2)) / 60);
 
-        const progressText = `Checking activity: ${current}/${totalMembers} (${player.name})`;
-        await progressMessage.edit(progressText);
+        discAproxTimeLeft = aproxTimeLeft.toString();
+
+        await discProgressMessage.edit({
+          embeds: [
+            new EmbedBuilder({
+              title: `Clan Activity Scan`,
+              description: [
+                `### Updating players data`,
+                `Please wait a moment, this may take a while. Players on the exception list will not be scammed.`,
+                `- Total members: **${allPlayers}**`,
+                `- On exception list: **${totalExceptionPlayers}**`,
+                `- Players in queue: **${currentPlayerSearchCount}/${totalRegularPlayers}**`,
+                `- Scanning player: **${discScanningPlayer}**`,
+                `- Failed scans: **${currentFailedScans}**`,
+                `*In case of failed scans, check the console.*`,
+              ].join("\n"),
+              footer: {
+                text: `Approx time left: **${discAproxTimeLeft} mins.**`,
+              },
+              color: 0xff0000,
+            }),
+          ],
+        });
 
         const formattedName = formatName(player.name);
 
         const summary = await fetchPlayerData(formattedName);
-        const lastOnline = summary?.lastOnline
-          ? new Date(summary?.lastOnline)
+
+        if (!summary) {
+          console.error(`Failed to fetch data for ${player.name}`);
+
+          currentFailedScans++;
+          continue;
+        }
+
+        const lastOnline = summary.lastOnline ? new Date(summary?.lastOnline) : null;
+        const lastActivity = summary.lastActivity
+          ? new Date(summary.lastActivity)
           : null;
-        const lastActivity = summary?.lastActivity
-          ? new Date(summary?.lastActivity)
-          : null;
-        const isGim = summary?.isGim ?? false;
-        const runescapeId = summary?.runescapeId;
+        const isGim = summary.isGim ?? false;
+        const runescapeId = summary.runescapeId;
 
         const daysSinceLastOnline = calculateDaysSinceLastActivity(lastOnline);
         const daysSinceLastActivity = calculateDaysSinceLastActivity(lastActivity);
 
         console.log(
-          `${player.name} last online ${daysSinceLastOnline ?? "Never"} days ago`,
-          `${player.name} last activity ${daysSinceLastActivity ?? "Never"} days ago`,
+          `Player: ${player.name} \n last online: ${daysSinceLastOnline ?? "Never"} days ago \n`,
+          `last activity: ${daysSinceLastActivity ?? "Never"} days ago`,
         );
 
         if (lastOnline || lastActivity) {
@@ -69,23 +118,19 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
 
           console.log(`Updated ${formattedName} with lastOnline: ${lastOnline}`);
         }
-
+        // Aritificially wait to avoid rate limiting
         await new Promise((resolve) => setTimeout(resolve, secs * 1000));
       } catch (memberError) {
         console.error(`Error processing ${player.name}:`, memberError);
       }
 
-      current++;
+      currentPlayerSearchCount++;
     }
   } catch (error) {
     console.error("Error scanning clan activity:", error);
 
     await message.reply(
-      `An error occurred while scanning the clan's activity. Please try again later.`,
+      `An error occurred while scanning the clan's activity. Please try again later or check the console.`,
     );
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
