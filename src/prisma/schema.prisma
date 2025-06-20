@@ -10,24 +10,25 @@ datasource db {
 model Clan {
   id           Int      @id @default(autoincrement())
   name         String   @default("Iron Rivals")
-  totalMembers Int      @default(0)
+  
   members      Member[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
 
 model Member {
-  id           Int      @id @default(autoincrement())
-  name         String   @unique
-  rank         String?
-  lastOnline   DateTime?
-  isException  Boolean  @default(false)
-  isGim        Boolean  @default(false)
+  id                Int       @id @default(autoincrement())
+  runescapeId       BigInt?
+  name              String    @unique
+  rank              String?
+  lastOnline        DateTime?
+  lastActivity      DateTime?
+  hasMonthlyExpGain Boolean?
+  isException       Boolean   @default(false)
+  isGim             Boolean?
 
-  clanId       Int
-  clan         Clan     @relation(fields: [clanId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  clanId    Int
+  clan      Clan     @relation(fields: [clanId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
-
