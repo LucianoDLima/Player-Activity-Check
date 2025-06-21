@@ -16,13 +16,16 @@ export async function findInvalidPlayers(message: Message, include?: IncludeType
   try {
     let nonExceptionPlayers: Member[] = [];
     let exceptionPlayers: Member[] = [];
+    let playersList: Member[] = [];
 
     if (include !== "exception") {
       nonExceptionPlayers = await findPlayerWithoutActivity(false);
+      playersList.push(...nonExceptionPlayers);
     }
 
     if (include === "exception" || include === "both") {
       exceptionPlayers = await findPlayerWithoutActivity(true);
+      playersList.push(...exceptionPlayers);
     }
 
     const nonExceptionPlayersNotFound = nonExceptionPlayers.length === 0;
@@ -34,32 +37,32 @@ export async function findInvalidPlayers(message: Message, include?: IncludeType
       return;
     }
 
-    const descriptionParts: string[] = [];
-
-    if (nonExceptionPlayers.length > 0) {
-      const list = nonExceptionPlayers
-        .map((member) => `**${member.name}** - ${member.rank}`)
-        .join("\n");
-
-      descriptionParts.push("**Regular rank players:**", list, "");
-    }
-
-    if (
-      (include === "exception" || include === "both") &&
-      exceptionPlayers.length > 0
-    ) {
-      const list = exceptionPlayers
-        .map((member) => `**${member.name}** - ${member.rank}`)
-        .join("\n");
-
-      descriptionParts.push("**Players on the exception list:**", list, "");
-    }
+    const descriptionParts = [
+      "``` ",
+      "Player          | rank | xcep |",
+      "                |      | tion |",
+      "--------------- | ---- | ---- |",
+      ...playersList
+        .map((member) => ({
+          name: member.name,
+          rank: member.rank,
+          exception: member.isException ? "yes" : "no",
+        })) // TODO: Sort rank by runescape hierarchy or add a button to change sorting idk yet
+        .sort((a, b) => a.rank!.localeCompare(b.rank!))
+        .map((member) => {
+          const name = member.name.padEnd(15).slice(0, 15);
+          const rank = member.rank!.padEnd(4).slice(0, 4);
+          const exception = member.exception.padEnd(4).slice(0, 4);
+          return `${name} | ${rank} | ${exception} |`;
+        }),
+      "```",
+    ].join("\n");
 
     await message.reply({
       embeds: [
         new EmbedBuilder({
           title: "Players with no activity recorded",
-          description: descriptionParts.join("\n"),
+          description: descriptionParts,
           color: 0xff0000,
           timestamp: new Date(),
         }),

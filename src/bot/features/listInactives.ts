@@ -28,14 +28,28 @@ export async function listInactives(message: Message, daysThreshold: number = 30
     }
 
     // Return all inactive players with how many days theyve been offline and desc sort it
-    const inactivePlayersList = inactivePlayers
-      .map((member) => ({
-        name: member.name,
-        daysOffline: calculateDaysSinceLastActivity(member.lastOnline),
-      }))
-      .sort((a, b) => b.daysOffline! - a.daysOffline!)
-      .map((member) => `**${member.name}** - ${member.daysOffline} days offline`)
-      .join("\n");
+    // TODO: Last Online seems to not be reliable as per testing with Darc user, that has last online as almost 2 years ago
+    // even tho he has log in his activity dating this month
+    const inactivePlayersList = [
+      "```",
+      "Player          | last | last | mnth | is   |",
+      "                | onli | actv | exp  | gim  |",
+      "--------------- | ---- | ---- | ---- | ---- |",
+      ...inactivePlayers
+        .map((member) => ({
+          name: member.name,
+          lastOnline: calculateDaysSinceLastActivity(member.lastOnline),
+          lastActivity: calculateDaysSinceLastActivity(member.lastActivity),
+        }))
+        .sort((a, b) => b.lastOnline! - a.lastOnline!)
+        .map((member) => {
+          const name = member.name.padEnd(15).slice(0, 15);
+          const online = String(member.lastOnline).padStart(4).slice(0, 4);
+          const activity = String(member.lastActivity).padStart(4).slice(0, 4);
+          return `${name} | ${online} | ${activity} |      |      |`;
+        }),
+      "```",
+    ].join("\n");
 
     await message.reply({
       embeds: [
