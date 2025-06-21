@@ -35,29 +35,26 @@ export async function listInactives(message: Message, daysThreshold: number = 30
     }
 
     // Return all inactive players with how many days theyve been offline and desc sort it
-    // TODO: Last Online seems to not be reliable as per testing with Darc user, that has last online as almost 2 years ago
-    // even tho he has log in his activity dating this month
     const inactivePlayersList = [
       "```",
-      "Player       | lst | lst | mth | lst | is  |",
-      "name         | onl | act | exp | chk | gim |",
-      "------------ | --- | --- | --- | --- | --- |",
+      "| id  | Player       | last | mnth | last | is   |",
+      "|     | name         | actv | exp  | chek | gim  |",
+      "| --- | ------------ | ---- | ---- | ---- | ---- |",
       ...inactivePlayers
         .map((member) => ({
           name: member.name,
-          lastOnline: calculateDaysSinceLastActivity(member.lastOnline),
           lastActivity: calculateDaysSinceLastActivity(member.lastActivity),
           lastCheck: calculateDaysSinceLastActivity(member.updatedAt),
           isGim: member.isGim,
+          id: member.id,
         }))
-        .sort((a, b) => b.lastOnline! - a.lastOnline!)
-        .map((member) => {
+        .map((member, index) => {
+          const id = String(index + 1).padStart(3, " ");
           const name = member.name.padEnd(12).slice(0, 15);
-          const online = String(member.lastOnline).padStart(3).slice(0, 4);
-          const activity = String(member.lastActivity).padStart(3).slice(0, 4);
-          const isGim = member.isGim ? "yes" : "no ";
-          const lastCheck = String(member.lastCheck).padStart(3).slice(0, 4);
-          return `${name} | ${online} | ${activity} |     | ${lastCheck} | ${isGim} |     |`;
+          const activity = String(member.lastActivity).padStart(4).slice(0, 4);
+          const isGim = member.isGim ? "yes " : "no  ";
+          const lastCheck = String(member.lastCheck).padStart(4).slice(0, 4);
+          return `| ${id} | ${name} | ${activity} |      | ${lastCheck} | ${isGim} |`;
         }),
       "```",
     ].join("\n");

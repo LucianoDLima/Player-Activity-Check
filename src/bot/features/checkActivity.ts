@@ -29,17 +29,20 @@ export async function checkAllPlayersActivity(
 
     let successfulScan = 0;
     let failedScan = 0;
+    let failedScanPositions = [];
+    let currentLoop = 1;
 
     await interaction.reply({
       embeds: [
         new EmbedBuilder({
           title: "Scan Progress",
           description: [
-            `Scanning: Searching... (0/${playerList.length})`,
+            `Last scanned: In progress... (0/${playerList.length})`,
             ``,
             `- Successful scans: **${successfulScan}**`,
             `- Failed scans: **${failedScan}**`,
             `  - Failed scans usually means the player has changed privacy on.`,
+            `- Failed users: `,
           ].join("\n"),
           color: 0x00ff00,
         }),
@@ -64,6 +67,8 @@ export async function checkAllPlayersActivity(
         if (!lastActivity) {
           failedScan++;
           successfulScan--;
+
+          failedScanPositions.push(currentLoop);
         }
       } catch (playerError) {
         console.error(`Error processing ${player.name}:`, playerError);
@@ -74,18 +79,19 @@ export async function checkAllPlayersActivity(
       }
 
       successfulScan++;
+      currentLoop++;
 
       await interaction.editReply({
         embeds: [
           new EmbedBuilder({
             title: "Scan Progress",
             description: [
-              `Scanning ${player.name}... (${successfulScan + failedScan}/${playerList.length})`,
+              `Last scanned: ${player.name}... (${successfulScan + failedScan}/${playerList.length})`,
               ``,
               `- Successful scans: **${successfulScan}**`,
               `- Failed scans: **${failedScan}**`,
               `  - Failed scans usually mean the player has changed privacy on.`,
-              `* TODO: I could add a temporary id to inactive list so I could list the ids of the failed users here`,
+              `- Failed users ID: **${failedScanPositions.join(" | ")}**`,
             ].join("\n"),
             color: 0x00ff00,
           }),
@@ -93,7 +99,12 @@ export async function checkAllPlayersActivity(
       });
     }
     await interaction.followUp({
-      content: "Update complete. Try /inactive again to see updated list.",
+      content: [
+        "Update complete. Try /inactive again to see updated list.",
+        failedScanPositions.length > 0
+          ? `Make sure to manually check the users that the scan couldn't find on runemetrics!`
+          : null,
+      ].join("\n"),
     });
   } catch (error) {
     console.error("Error checking all players' activity:", error);
