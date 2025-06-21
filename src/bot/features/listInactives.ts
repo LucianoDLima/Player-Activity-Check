@@ -34,28 +34,33 @@ export async function listInactives(message: Message, daysThreshold: number = 30
       return;
     }
 
-    // Return all inactive players with how many days theyve been offline and desc sort it
+    // Return all inactive players with how many days theyve been offline, if they got any exp this month, and if they are a GIM
+    // last chek is the last time this user has been updated. Makes it easier to see if the monthly exp gain is relevant or not.
     const inactivePlayersList = [
       "```",
       "| id  | Player       | last | mnth | last | is   |",
       "|     | name         | actv | exp  | chek | gim  |",
       "| --- | ------------ | ---- | ---- | ---- | ---- |",
-      ...inactivePlayers
-        .map((member) => ({
-          name: member.name,
-          lastActivity: calculateDaysSinceLastActivity(member.lastActivity),
-          lastCheck: calculateDaysSinceLastActivity(member.updatedAt),
-          isGim: member.isGim,
-          id: member.id,
-        }))
-        .map((member, index) => {
-          const id = String(index + 1).padStart(3, " ");
-          const name = member.name.padEnd(12).slice(0, 15);
-          const activity = String(member.lastActivity).padStart(4).slice(0, 4);
-          const isGim = member.isGim ? "yes " : "no  ";
-          const lastCheck = String(member.lastCheck).padStart(4).slice(0, 4);
-          return `| ${id} | ${name} | ${activity} |      | ${lastCheck} | ${isGim} |`;
-        }),
+      ...inactivePlayers.map((member, index) => {
+        const id = String(index + 1).padStart(3, " ");
+        const name = member.name.padEnd(12).slice(0, 15);
+        const activity = String(calculateDaysSinceLastActivity(member.lastActivity))
+          .padStart(4)
+          .slice(0, 4);
+        const lastCheck = String(calculateDaysSinceLastActivity(member.updatedAt))
+          .padStart(4)
+          .slice(0, 4);
+        const hasMonthExp =
+          member.hasMonthlyExpGain === null
+            ? "    "
+            : member.hasMonthlyExpGain
+              ? "yes "
+              : "no  ";
+        const isGim =
+          member.isGim === null ? "    " : member.isGim ? "yes " : "no  ";
+
+        return `| ${id} | ${name} | ${activity} | ${hasMonthExp} | ${lastCheck} | ${isGim} |`;
+      }),
       "```",
     ].join("\n");
 
@@ -75,8 +80,13 @@ export async function listInactives(message: Message, daysThreshold: number = 30
         new ActionRowBuilder<ButtonBuilder>({
           components: [
             new ButtonBuilder({
-              custom_id: "deep_scan",
+              custom_id: "activity_scan",
               label: "Update activity",
+              style: ButtonStyle.Primary,
+            }),
+            new ButtonBuilder({
+              custom_id: "exp_scan",
+              label: "Update monthly exp",
               style: ButtonStyle.Primary,
             }),
           ],

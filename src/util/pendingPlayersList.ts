@@ -5,7 +5,7 @@ const pendingPlayersList = new Map<string, Member[]>();
 
 /**
  * Works as a state manager
- * it saves the list of players returned by another function so it can be used in another function that will also need that list as a follow up.
+ * it saves the list of players returned by a function so it can be used in another function that will also need that list as a follow up.
  *
  * @param messageId The disc message ID that will be used as a key to store the list of players
  * @param players The list of players
@@ -13,13 +13,13 @@ const pendingPlayersList = new Map<string, Member[]>();
 export function setPendingPlayersList(messageId: string, players: Member[]) {
   pendingPlayersList.set(messageId, players);
 
-  // Clean up the entry after 2 mins cz bad computer :p in case too many are called
+  // Clean up the entry after 4 mins cz bad computer :p in case too many are called
   setTimeout(
     () => {
       pendingPlayersList.delete(messageId);
       console.log(`Cleaned up expired pending scan for message: ${messageId}`);
     },
-    2 * 60 * 1000,
+    4 * 60 * 1000,
   );
 }
 
@@ -29,9 +29,9 @@ export function setPendingPlayersList(messageId: string, players: Member[]) {
  */
 export function consumePendingPlayersList(messageId: string): Member[] | undefined {
   const players = pendingPlayersList.get(messageId);
-  if (players) {
-    pendingPlayersList.delete(messageId);
-  }
+  // if (players) {
+  //   pendingPlayersList.delete(messageId);
+  // }
 
   return players;
 }

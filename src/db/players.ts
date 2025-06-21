@@ -6,24 +6,24 @@ export async function findAllPlayers() {
   });
 }
 
-export async function findPlayerByActivity(exception: boolean = false) {
+export async function findPlayerByActivity(isException: boolean = false) {
   return prisma.member.findMany({
     where: {
       lastOnline: {
         not: null,
       },
-      isException: exception,
+      isException,
     },
 
     orderBy: { id: "asc" },
   });
 }
 
-export async function findPlayerWithoutActivity(exception: boolean = false) {
+export async function findPlayerWithoutActivity(isException: boolean = false) {
   return prisma.member.findMany({
     where: {
       lastOnline: null,
-      isException: exception,
+      isException,
     },
 
     orderBy: { id: "asc" },
@@ -32,21 +32,21 @@ export async function findPlayerWithoutActivity(exception: boolean = false) {
 
 export async function findPlayerByName(name: string) {
   return prisma.member.findUnique({
-    where: { name: name },
+    where: { name },
   });
 }
 
 export async function createPlayer(
-  player: string,
+  name: string,
   rank: string,
   clanId: number,
   isException = false,
 ) {
   return prisma.member.create({
     data: {
-      name: player,
-      rank: rank,
-      clanId: clanId,
+      name,
+      rank,
+      clanId,
       isException,
     },
   });
@@ -72,7 +72,17 @@ export async function updatePlayerData(
 
 export async function updatePlayerLastActivity(name: string, lastActivity: Date) {
   return prisma.member.update({
-    where: { name: name },
-    data: { lastActivity: lastActivity },
+    where: { name },
+    data: { lastActivity },
+  });
+}
+
+export async function updatePlayerMonthlyExpGain(
+  name: string,
+  hasMonthlyExpGain: boolean,
+) {
+  return prisma.member.update({
+    where: { name },
+    data: { hasMonthlyExpGain },
   });
 }

@@ -32,23 +32,6 @@ export async function checkAllPlayersActivity(
     let failedScanPositions = [];
     let currentLoop = 1;
 
-    await interaction.reply({
-      embeds: [
-        new EmbedBuilder({
-          title: "Scan Progress",
-          description: [
-            `Last scanned: In progress... (0/${playerList.length})`,
-            ``,
-            `- Successful scans: **${successfulScan}**`,
-            `- Failed scans: **${failedScan}**`,
-            `  - Failed scans usually means the player has changed privacy on.`,
-            `- Failed users: `,
-          ].join("\n"),
-          color: 0x00ff00,
-        }),
-      ],
-    });
-
     for (const player of allPlayers) {
       try {
         const formattedName = formatName(player.name);
@@ -84,7 +67,7 @@ export async function checkAllPlayersActivity(
       await interaction.editReply({
         embeds: [
           new EmbedBuilder({
-            title: "Scan Progress",
+            title: "Activity Scan Progress",
             description: [
               `Last scanned: ${player.name}... (${successfulScan + failedScan}/${playerList.length})`,
               ``,
@@ -101,10 +84,12 @@ export async function checkAllPlayersActivity(
     await interaction.followUp({
       content: [
         "Update complete. Try /inactive again to see updated list.",
-        failedScanPositions.length > 0
+        failedScan > 0
           ? `Make sure to manually check the users that the scan couldn't find on runemetrics!`
           : null,
-      ].join("\n"),
+      ]
+        .filter(Boolean)
+        .join("\n"),
     });
   } catch (error) {
     console.error("Error checking all players' activity:", error);

@@ -6,6 +6,7 @@ import { findInvalidPlayers, IncludeType } from "./features/findInvalidPlayers";
 import { scanClanActivity } from "./features/scanClanActivity";
 import { checkAllPlayersActivity } from "./features/checkActivity";
 import { consumePendingPlayersList } from "../util/pendingPlayersList";
+import { checkExp } from "./features/checkExp";
 
 export function commandsHandler(client: Client) {
   client.on("messageCreate", async (message: Message) => {
@@ -95,7 +96,7 @@ export function commandsHandler(client: Client) {
   client.on("interactionCreate", async (interaction) => {
     if (!interaction.isButton()) return;
 
-    if (interaction.customId === "deep_scan") {
+    if (interaction.customId === "activity_scan") {
       const playersToScan = consumePendingPlayersList(interaction.message.id);
 
       if (!playersToScan) {
@@ -108,7 +109,27 @@ export function commandsHandler(client: Client) {
         return;
       }
 
+      await interaction.deferReply();
+
       await checkAllPlayersActivity(interaction, playersToScan);
+    }
+
+    if (interaction.customId === "exp_scan") {
+      const playersToScan = consumePendingPlayersList(interaction.message.id);
+
+      if (!playersToScan) {
+        await interaction.reply({
+          content:
+            "This button has expired or the data is no longer available. Please run /inactive command again.",
+          ephemeral: true,
+        });
+
+        return;
+      }
+
+      await interaction.deferReply();
+
+      await checkExp(interaction, playersToScan);
     }
   });
 }
