@@ -4,6 +4,8 @@ import { getHelpMessage } from "./features/help";
 import { listInactives } from "./features/listInactives";
 import { findInvalidPlayers, IncludeType } from "./features/findInvalidPlayers";
 import { scanClanActivity } from "./features/scanClanActivity";
+import { checkAllPlayersActivity } from "./features/checkActivity";
+import { consumePendingPlayersList } from "../util/pendingPlayersList";
 
 export function commandsHandler(client: Client) {
   client.on("messageCreate", async (message: Message) => {
@@ -43,6 +45,7 @@ export function commandsHandler(client: Client) {
           return;
         }
 
+        // NOT RELIABLE. Need to remove and just use runemetrics scraping directly.
         await scanClanActivity(message, seconds);
         break;
 
@@ -86,6 +89,26 @@ export function commandsHandler(client: Client) {
       case "/purge":
         // TODO: Implement purge function. It will remove members who are not in the clan anymore.
         break;
+    }
+  });
+
+  client.on("interactionCreate", async (interaction) => {
+    if (!interaction.isButton()) return;
+
+    if (interaction.customId === "deep_scan") {
+      const playersToScan = consumePendingPlayersList(interaction.message.id);
+
+      if (!playersToScan) {
+        await interaction.reply({
+          content:
+            "This button has expired or the data is no longer available. Please run /inactive command again.",
+          ephemeral: true,
+        });
+
+        return;
+      }
+
+      await checkAllPlayersActivity(interaction, playersToScan);
     }
   });
 }
