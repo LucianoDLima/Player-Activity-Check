@@ -18,11 +18,21 @@ export async function listInactives(message: Message, daysThreshold: number = 30
   try {
     const players = await findPlayerByActivity();
 
-    // Find players whose days offline exceeds the days threshold
+    // Filter out players who:
+    // - Last activity is null (never tracked)
+    // - Last activity is less than the days threshold
+    // - Monthly exp is true plus Last check (updatedAt) is more than the days threshold
     const inactivePlayers = players.filter((player) => {
       const lastActivity = calculateDaysSinceLastActivity(player.lastActivity);
+      const lastCheck = calculateDaysSinceLastActivity(player.updatedAt);
 
-      return lastActivity! > daysThreshold;
+      const isActivityTooRecent =
+        lastActivity === null || lastActivity <= daysThreshold;
+      const isExpTooRecent =
+        player.hasMonthlyExpGain === true &&
+        (lastCheck === null || lastCheck <= daysThreshold);
+
+      return !isActivityTooRecent && !isExpTooRecent;
     });
 
     // If empty array is returned, then it means no players have been inactive for the days threshold
