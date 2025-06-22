@@ -17,15 +17,16 @@ model Clan {
 }
 
 model Member {
-  id                Int       @id @default(autoincrement())
-  runescapeId       BigInt?
-  name              String    @unique
-  rank              String?
-  lastOnline        DateTime?
-  lastActivity      DateTime?
-  hasMonthlyExpGain Boolean?
-  isException       Boolean   @default(false)
-  isGim             Boolean?
+  id                   Int       @id @default(autoincrement())
+  runescapeId          BigInt?
+  name                 String    @unique
+  rank                 String?
+  lastActivity         DateTime?
+  lastCheckForActivity DateTime?
+  hasMonthlyExpGain    Boolean?
+  lastCheckForExpGain  DateTime?
+  isException          Boolean   @default(false)
+  isGim                Boolean?
 
   clanId    Int
   clan      Clan     @relation(fields: [clanId], references: [id])
