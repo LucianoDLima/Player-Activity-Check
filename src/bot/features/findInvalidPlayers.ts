@@ -37,24 +37,26 @@ export async function findInvalidPlayers(message: Message, include?: IncludeType
       return;
     }
 
-    const descriptionParts = [
+    const invalidPlayersTable = [
       "``` ",
-      "Player          | rank | xcep |",
-      "                |      | tion |",
-      "--------------- | ---- | ---- |",
+      "╒═════╤══════════════╤══════╤══════╕",
+      "│  #  │ Player       │ rank │ xcep │",
+      "│     │ name         │      │ tion │",
+      "╞═════╪══════════════╪══════╪══════╡",
       ...playersList
         .map((member) => ({
           name: member.name,
           rank: member.rank,
           exception: member.isException ? "yes" : "no",
-        })) // TODO: Sort rank by runescape hierarchy or add a button to change sorting idk yet
-        .sort((a, b) => a.rank!.localeCompare(b.rank!))
-        .map((member) => {
-          const name = member.name.padEnd(15).slice(0, 15);
+        }))
+        .map((member, index) => {
+          const name = member.name.padEnd(12).slice(0, 15);
           const rank = member.rank!.padEnd(4).slice(0, 4);
           const exception = member.exception.padEnd(4).slice(0, 4);
-          return `${name} | ${rank} | ${exception} |`;
+          const id = String(index + 1).padStart(3, " ");
+          return `│ ${id} │ ${name} │ ${rank} │ ${exception} │`;
         }),
+      "╘═════╧══════════════╧══════╧══════╛",
       "```",
     ].join("\n");
 
@@ -62,7 +64,7 @@ export async function findInvalidPlayers(message: Message, include?: IncludeType
       embeds: [
         new EmbedBuilder({
           title: "Players with no activity recorded",
-          description: descriptionParts,
+          description: invalidPlayersTable,
           color: 0xff0000,
           timestamp: new Date(),
         }),

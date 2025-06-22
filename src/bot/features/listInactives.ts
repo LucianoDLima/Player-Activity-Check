@@ -48,29 +48,30 @@ export async function listInactives(message: Message, daysThreshold: number = 30
     // last chek is the last time this user has been updated. Makes it easier to see if the monthly exp gain is relevant or not.
     const inactivePlayersList = [
       "```",
-      "| id  | Player       | last | mnth | last | is   |",
-      "|     | name         | actv | exp  | chek | gim  |",
-      "| --- | ------------ | ---- | ---- | ---- | ---- |",
+      "╒═════╤══════════════╤═════╤═════╤═════╤═════╤═════╕",
+      "│  #  │ Player       │ Lst │ Lst │ Mth │ Lst │ is  │",
+      "│     │ name         │ act │ chk │ exp │ chk │ gim │",
+      "╞═════╪══════════════╪═════╪═════╪═════╪═════╪═════╡",
       ...inactivePlayers.map((member, index) => {
         const id = String(index + 1).padStart(3, " ");
         const name = member.name.padEnd(12).slice(0, 15);
         const activity = String(calculateDaysSinceLastActivity(member.lastActivity))
-          .padStart(4)
-          .slice(0, 4);
+          .padStart(3)
+          .slice(0, 3);
         const lastCheck = String(calculateDaysSinceLastActivity(member.updatedAt))
-          .padStart(4)
+          .padStart(3)
           .slice(0, 4);
         const hasMonthExp =
           member.hasMonthlyExpGain === null
-            ? "    "
+            ? "   "
             : member.hasMonthlyExpGain
-              ? "yes "
-              : "no  ";
-        const isGim =
-          member.isGim === null ? "    " : member.isGim ? "yes " : "no  ";
+              ? "yes"
+              : "no ";
+        const isGim = member.isGim === null ? "    " : member.isGim ? "yes" : "no ";
 
-        return `| ${id} | ${name} | ${activity} | ${hasMonthExp} | ${lastCheck} | ${isGim} |`;
+        return `│ ${id} │ ${name} │ ${activity} │     │ ${hasMonthExp} │ ${lastCheck} │ ${isGim} │`;
       }),
+      "╘═════╧══════════════╧═════╧═════╧═════╧═════╧═════╛",
       "```",
     ].join("\n");
 
