@@ -5,7 +5,7 @@ import { Member } from "@prisma/client";
 export type IncludeType = "both" | "exception";
 
 /**
- * Find players with lastOnline null.
+ * Find players with lastActivty null.
  * This will most likely be players that either the scraping failed, or have privacy on runemtrics.
  * It also includes players on the exception list if their activity have never been tracked.
  *

@@ -44,7 +44,7 @@ export async function checkAllPlayersActivity(
 
         if (lastActivity) {
           await updatePlayerLastActivity(player.name, lastActivity);
-          console.log(`Updated ${formattedName} with lastOnline: ${lastActivity}`);
+          console.log(`Updated ${formattedName} with lastActivity: ${lastActivity}`);
         }
 
         if (!lastActivity) {

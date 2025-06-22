@@ -1,13 +1,12 @@
 import { EmbedBuilder, Message } from "discord.js";
 import { formatName } from "../../util/formatNames";
-import { calculateDaysSinceLastActivity } from "../../util/formatDate";
-import { findAllPlayers, updatePlayerData } from "../../db/players";
+import { findAllPlayers, updatePlayerInfo } from "../../db/players";
 import { fetchPlayerData } from "../../scraper/fetchPlayerData";
 
 /**
- * Checks the last time a player was online and add it to the database.
- * It does this by getting the last online from the api, and also the last activity tracked, as we are not sure if the last online is reliable on its own yet (it seems to be from my testing, but needs more testing just in case).
- * It also stores if the user is a gim player, and their runescape ID in case we can use it to check name changes.
+ * Store some data about the player:
+ * If they are a gim and their runescape ID through runepixels API.
+ * Last activity tracked through scraping runemetrics (can take around 10 to 20 seconds per player).
  *
  * @param message The message the discord bot will send.
  * @param secs How many seconds to wait between each player's activity check. Necessary to avoid rate limiting.
@@ -83,40 +82,24 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
 
         const formattedName = formatName(player.name);
 
-        const summary = await fetchPlayerData(formattedName);
+        const playerData = await fetchPlayerData(formattedName);
 
-        if (!summary) {
+        if (!playerData) {
           console.error(`Failed to fetch data for ${player.name}`);
 
           currentFailedScans++;
           continue;
         }
 
-        const lastOnline = summary.lastOnline ? new Date(summary?.lastOnline) : null;
-        const lastActivity = summary.lastActivity
-          ? new Date(summary.lastActivity)
-          : null;
-        const isGim = summary.isGim ?? false;
-        const runescapeId = summary.runescapeId;
+        const isGim = playerData.isGim;
+        const runescapeId = playerData.runescapeId;
 
-        const daysSinceLastOnline = calculateDaysSinceLastActivity(lastOnline);
-        const daysSinceLastActivity = calculateDaysSinceLastActivity(lastActivity);
+        if (runescapeId || isGim) {
+          await updatePlayerInfo(player.name, isGim, runescapeId);
 
-        console.log(
-          `Player: ${player.name} \n last online: ${daysSinceLastOnline ?? "Never"} days ago \n`,
-          `last activity: ${daysSinceLastActivity ?? "Never"} days ago`,
-        );
-
-        if (lastOnline || lastActivity) {
-          await updatePlayerData(
-            player.name,
-            lastOnline,
-            lastActivity,
-            isGim,
-            runescapeId,
+          console.log(
+            `${player.name}: ${isGim ? "GIM" : "Ironman"} player, RS3 ID: ${runescapeId}`,
           );
-
-          console.log(`Updated ${formattedName} with lastOnline: ${lastOnline}`);
         }
         // Aritificially wait to avoid rate limiting
         await new Promise((resolve) => setTimeout(resolve, secs * 1000));

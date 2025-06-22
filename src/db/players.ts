@@ -9,7 +9,7 @@ export async function findAllPlayers() {
 export async function findPlayerByActivity(isException: boolean = false) {
   return prisma.member.findMany({
     where: {
-      lastOnline: {
+      lastActivity: {
         not: null,
       },
       isException,
@@ -22,7 +22,7 @@ export async function findPlayerByActivity(isException: boolean = false) {
 export async function findPlayerWithoutActivity(isException: boolean = false) {
   return prisma.member.findMany({
     where: {
-      lastOnline: null,
+      lastActivity: null,
       isException,
     },
 
@@ -52,18 +52,14 @@ export async function createPlayer(
   });
 }
 
-export async function updatePlayerData(
+export async function updatePlayerInfo(
   name: string,
-  lastOnline: Date | null = null,
-  lastActivity: Date | null = null,
-  isGim: boolean = false,
-  runescapeId: number | null = null,
+  isGim: boolean,
+  runescapeId: number | null,
 ) {
   return prisma.member.update({
     where: { name },
     data: {
-      lastOnline,
-      lastActivity,
       isGim,
       runescapeId,
     },
