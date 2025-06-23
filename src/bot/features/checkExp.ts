@@ -56,12 +56,9 @@ export async function checkExp(
 
   await interaction.followUp({
     content: [
-      `Update complete. Try /inactive again to see updated list.`,
-      failCount > 0
-        ? `Make sure to manually check the users that the scan couldn't find on runemetrics!`
-        : null,
-    ]
-      .filter(Boolean)
-      .join("\n"),
+      "Update complete.",
+      "- Try /inactive to see the list of inactive players.",
+      "- Try /invalid to see the list of players the scan failed.",
+    ].join("\n"),
   });
 }

@@ -1,6 +1,7 @@
-import { EmbedBuilder, Message } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message } from "discord.js";
 import { findPlayerWithoutActivity } from "../../db/players";
 import { Member } from "@prisma/client";
+import { setPendingPlayersList } from "../../util/pendingPlayersList";
 
 export type IncludeType = "both" | "exception";
 
@@ -60,7 +61,7 @@ export async function findInvalidPlayers(message: Message, include?: IncludeType
       "```",
     ].join("\n");
 
-    await message.reply({
+    const replyMessage = await message.reply({
       embeds: [
         new EmbedBuilder({
           title: "Players with no activity recorded",
@@ -69,7 +70,25 @@ export async function findInvalidPlayers(message: Message, include?: IncludeType
           timestamp: new Date(),
         }),
       ],
+      components: [
+        new ActionRowBuilder<ButtonBuilder>({
+          components: [
+            new ButtonBuilder({
+              custom_id: "activity_scan",
+              label: "Update activity",
+              style: ButtonStyle.Primary,
+            }),
+            new ButtonBuilder({
+              custom_id: "exp_scan",
+              label: "Update monthly exp",
+              style: ButtonStyle.Primary,
+            }),
+          ],
+        }),
+      ],
     });
+
+    setPendingPlayersList(replyMessage.id, playersList);
   } catch (error) {
     console.error("Error in findInvalidPlayers:", error);
 
