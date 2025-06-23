@@ -18,7 +18,10 @@ import { checkPlayerActivity } from "../../scraper/checkPlayerActivity";
  */
 export async function scanClanActivity(message: Message, secs: number = 15) {
   try {
-    const players = await findAllPlayers();
+    const unfilteredPlayers = await findAllPlayers();
+    const players = unfilteredPlayers.filter(
+      (p) => !p.runescapeId || p.lastActivity === null,
+    );
 
     if (players.length === 0) {
       await message.reply(
@@ -67,9 +70,14 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
       try {
         discScanningPlayer = player.name;
 
-        const aproxTimeLeft = Math.floor((totalRegularPlayers * (secs + 2)) / 60);
+        const aproxTimeLeft = Math.floor(
+          ((totalRegularPlayers - currentPlayerSearchCount) * (secs + 14)) / 60,
+        );
 
-        discAproxTimeLeft = aproxTimeLeft.toString();
+        discAproxTimeLeft =
+          aproxTimeLeft.toString() === "0"
+            ? "less than 1 min."
+            : `${aproxTimeLeft} mins.`;
 
         await discProgressMessage.edit({
           embeds: [
@@ -86,7 +94,7 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
                 `*In case of failed scans, check the console.*`,
               ].join("\n"),
               footer: {
-                text: `Approx time left: **${discAproxTimeLeft} mins.**`,
+                text: `Approx time left: ${discAproxTimeLeft}`,
               },
               color: 0xff0000,
             }),
@@ -97,7 +105,7 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
 
         const playerData = await fetchPlayerData(formattedName);
 
-        const playerActivity = await checkPlayerActivity(player.name);
+        const playerActivity = await checkPlayerActivity(formattedName);
 
         if (!playerData && !playerActivity) {
           console.error(`Failed to fetch data for ${player.name}`);
@@ -132,6 +140,21 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
 
       currentPlayerSearchCount++;
     }
+
+    await discProgressMessage.reply({
+      embeds: [
+        new EmbedBuilder({
+          title: `Clan Activity Scan`,
+          description: [
+            `### Update completed`,
+            `- You can run /invactive to see the list of inactive players.`,
+            `- You can run /invalid to see the list of players the scan failed.`,
+            `- You can run /scan again to try updating only the players that failed.`,
+          ].join("\n"),
+          color: 0x00ff00,
+        }),
+      ],
+    });
   } catch (error) {
     console.error("Error scanning clan activity:", error);
 
