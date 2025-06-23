@@ -66,19 +66,25 @@ export async function updatePlayerInfo(
   });
 }
 
-export async function updatePlayerLastActivity(name: string, lastActivity: Date) {
+export async function updatePlayerLastActivity(
+  name: string,
+  lastActivity: Date,
+  lastCheckForActivity: Date = new Date(),
+) {
   return prisma.member.update({
     where: { name },
-    data: { lastActivity },
+    data: { lastActivity, lastCheckForActivity },
   });
 }
+
 
 export async function updatePlayerMonthlyExpGain(
   name: string,
   hasMonthlyExpGain: boolean,
+  lastCheckForExpGain: Date = new Date(),
 ) {
   return prisma.member.update({
     where: { name },
-    data: { hasMonthlyExpGain },
+    data: { hasMonthlyExpGain, lastCheckForExpGain },
   });
 }

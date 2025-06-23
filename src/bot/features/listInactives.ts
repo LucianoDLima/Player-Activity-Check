@@ -58,9 +58,18 @@ export async function listInactives(message: Message, daysThreshold: number = 30
         const activity = String(calculateDaysSinceLastActivity(member.lastActivity))
           .padStart(3)
           .slice(0, 3);
-        const lastCheck = String(calculateDaysSinceLastActivity(member.updatedAt))
-          .padStart(3)
-          .slice(0, 4);
+        const lastActivityCheck =
+          calculateDaysSinceLastActivity(member.lastCheckForActivity) === null
+            ? "   "
+            : String(
+                calculateDaysSinceLastActivity(member.lastCheckForActivity),
+              ).padStart(3);
+        const lastExpCheck =
+          calculateDaysSinceLastActivity(member.lastCheckForExpGain) === null
+            ? "   "
+            : String(
+                calculateDaysSinceLastActivity(member.lastCheckForExpGain),
+              ).padStart(3);
         const hasMonthExp =
           member.hasMonthlyExpGain === null
             ? "   "
@@ -69,7 +78,7 @@ export async function listInactives(message: Message, daysThreshold: number = 30
               : "no ";
         const isGim = member.isGim === null ? "    " : member.isGim ? "yes" : "no ";
 
-        return `│ ${id} │ ${name} │ ${activity} │     │ ${hasMonthExp} │ ${lastCheck} │ ${isGim} │`;
+        return `│ ${id} │ ${name} │ ${activity} │ ${lastActivityCheck} │ ${hasMonthExp} │ ${lastExpCheck} │ ${isGim} │`;
       }),
       "╘═════╧══════════════╧═════╧═════╧═════╧═════╧═════╛",
       "```",

@@ -1,7 +1,12 @@
 import { EmbedBuilder, Message } from "discord.js";
 import { formatName } from "../../util/formatNames";
-import { findAllPlayers, updatePlayerInfo } from "../../db/players";
+import {
+  findAllPlayers,
+  updatePlayerInfo,
+  updatePlayerLastActivity,
+} from "../../db/players";
 import { fetchPlayerData } from "../../scraper/fetchPlayerData";
+import { checkPlayerActivity } from "../../scraper/checkPlayerActivity";
 
 /**
  * Store some data about the player:
@@ -14,6 +19,14 @@ import { fetchPlayerData } from "../../scraper/fetchPlayerData";
 export async function scanClanActivity(message: Message, secs: number = 15) {
   try {
     const players = await findAllPlayers();
+
+    if (players.length === 0) {
+      await message.reply(
+        "No players found in the clan. Please populate the clan first.",
+      );
+
+      return;
+    }
 
     const allPlayers = players.length;
     const regularPlayers = players.filter((p) => !p.isException);
@@ -84,21 +97,31 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
 
         const playerData = await fetchPlayerData(formattedName);
 
-        if (!playerData) {
+        const playerActivity = await checkPlayerActivity(player.name);
+
+        if (!playerData && !playerActivity) {
           console.error(`Failed to fetch data for ${player.name}`);
 
           currentFailedScans++;
           continue;
         }
 
-        const isGim = playerData.isGim;
-        const runescapeId = playerData.runescapeId;
+        const isGim = playerData?.isGim;
+        const runescapeId = playerData?.runescapeId;
 
         if (runescapeId || isGim) {
-          await updatePlayerInfo(player.name, isGim, runescapeId);
+          await updatePlayerInfo(player.name, isGim!, runescapeId!);
 
           console.log(
             `${player.name}: ${isGim ? "GIM" : "Ironman"} player, RS3 ID: ${runescapeId}`,
+          );
+        }
+
+        if (playerActivity) {
+          await updatePlayerLastActivity(player.name, playerActivity);
+
+          console.log(
+            `Updated ${player.name} with last activity: ${playerActivity}`,
           );
         }
         // Aritificially wait to avoid rate limiting
