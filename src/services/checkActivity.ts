@@ -1,6 +1,6 @@
 import { formatName } from "../util/formatNames";
 import { checkPlayerActivity } from "../scraper/checkPlayerActivity";
-import { calculateDaysSinceLastActivity } from "../util/formatDate";
+import { calcDaysSince } from "../util/formatDate";
 import { updatePlayerLastActivity } from "../db/queries/players/players";
 import { Member } from "@prisma/client";
 import { ButtonInteraction, EmbedBuilder } from "discord.js"; // Import ButtonInteraction
@@ -27,7 +27,7 @@ export async function checkAllPlayersActivity(
       try {
         const formattedName = formatName(player.name);
         const lastActivity = await checkPlayerActivity(formattedName);
-        const daysSinceLastActivity = calculateDaysSinceLastActivity(lastActivity);
+        const daysSinceLastActivity = calcDaysSince(lastActivity);
 
         console.log(
           `${player.name} last activity on DB ${daysSinceLastActivity ?? "Never"} days ago`,

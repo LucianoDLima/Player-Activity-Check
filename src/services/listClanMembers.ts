@@ -8,8 +8,9 @@ import {
 } from "discord.js";
 import { setPendingClanMembers } from "../cache/pendingClanMembers";
 import { findAllPlayers } from "../db/queries/players/players";
-import { calculateDaysSinceLastActivity } from "../util/formatDate";
+import { calcDaysSince } from "../util/formatDate";
 import { Member } from "@prisma/client";
+import { formatDaysColumn } from "../util/tableFormatter";
 
 export type ClanMemberData = Pick<
   Member,
@@ -35,66 +36,6 @@ function parseHiscoreData(data: string) {
         totalXP: parseInt(totalXP, 10) || 0,
       };
     });
-}
-
-export function buildClanListEmbed(
-  members: ClanMemberData[],
-  currentPage: number,
-  clanName: string,
-) {
-  const itemsPerPage = 20;
-  const totalPages = Math.ceil(members.length / itemsPerPage);
-  const page = Math.max(0, Math.min(currentPage, totalPages - 1));
-
-  const first = page * itemsPerPage;
-  const last = first + itemsPerPage;
-  const pageMembers = members.slice(first, last);
-
-  const embedDescription = [
-    "```",
-    "╒═════╤══════════════╤════════╤════════════╕",
-    "│  #  │ Player       │ rank   │ inactive   │",
-    "╞═════╪══════════════╪════════╪════════════╡",
-    ...pageMembers.map((member, index) => {
-      const number = String(first + index + 1).padStart(3);
-      const name = member.name.padEnd(12);
-      const rank = member.rank ? member.rank.padEnd(6).slice(0, 6) : "Unknown";
-      const inactive = [
-        String(calculateDaysSinceLastActivity(member.lastActivity!)).padStart(3),
-        "day(s)",
-      ]
-        .join(" ")
-        .padEnd(7);
-      return `│ ${number} │ ${name} │ ${rank} │ ${inactive} │`;
-    }),
-    "╘═════╧══════════════╧════════╧════════════╛",
-    "```",
-  ];
-
-  const embed = new EmbedBuilder()
-    .setTitle(`Clan members: ${clanName}`)
-    .setDescription(embedDescription.join("\n"))
-    .setColor(0x3498db);
-
-  const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`clanlist_prev_${page}`)
-      .setLabel("Previous")
-      .setStyle(ButtonStyle.Secondary)
-      .setDisabled(page === 0),
-    new ButtonBuilder()
-      .setCustomId("page_info")
-      .setDisabled(true)
-      .setLabel(`${page + 1}/${totalPages}`)
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(`clanlist_next_${page}`)
-      .setLabel("Next")
-      .setStyle(ButtonStyle.Secondary)
-      .setDisabled(page >= totalPages - 1),
-  );
-
-  return { embed, buttons };
 }
 
 export async function listClanMembers(interaction: ChatInputCommandInteraction) {
@@ -143,4 +84,73 @@ export async function handleListClanMembersPagination(
   const { embed, buttons } = buildClanListEmbed(members, nextPage, clanName);
 
   await interaction.update({ embeds: [embed], components: [buttons] });
+}
+
+function buildClanListEmbed(
+  members: ClanMemberData[],
+  currentPage: number,
+  clanName: string,
+) {
+  const itemsPerPage = 20;
+  const totalPages = Math.ceil(members.length / itemsPerPage);
+  const page = Math.max(0, Math.min(currentPage, totalPages - 1));
+  const WIDTH = {
+    number: 3,
+    name: 12,
+    rank: 6,
+    days: 3,
+    inactive: 10,
+  } as const;
+
+  const first = page * itemsPerPage;
+  const last = first + itemsPerPage;
+  const pageMembers = members.slice(first, last);
+
+  const embedDescription = [
+    "```",
+    "╒═════╤══════════════╤════════╤════════════╕",
+    "│  #  │ Player       │ rank   │ inactive   │",
+    "╞═════╪══════════════╪════════╪════════════╡",
+    ...pageMembers.map((member, index) => {
+      const number = String(first + index + 1).padStart(WIDTH.number);
+      const name = member.name.padEnd(WIDTH.name);
+      const rank = member.rank!.padEnd(WIDTH.rank).slice(0, WIDTH.rank);
+      const days = formatDaysColumn(member.lastActivity, WIDTH.days);
+      const inactive =
+        days !== " ".repeat(WIDTH.days)
+          ? `${days} day(s)`.padEnd(WIDTH.inactive)
+          : "Unavailable".padEnd(WIDTH.inactive).slice(0, WIDTH.inactive);
+
+      return `│ ${number} │ ${name} │ ${rank} │ ${inactive} │`;
+    }),
+    "╘═════╧══════════════╧════════╧════════════╛",
+    "```",
+  ];
+
+  const embed = new EmbedBuilder()
+    .setTitle(`Clan members: ${clanName}`)
+    .setDescription(embedDescription.join("\n"))
+    .setColor(0x3498db);
+
+  const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`clanlist_prev_${page}`)
+      .setLabel("Previous")
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(page === 0),
+
+    new ButtonBuilder()
+      .setCustomId("page_info")
+      .setDisabled(true)
+      .setLabel(`${page + 1}/${totalPages}`)
+      .setStyle(ButtonStyle.Secondary),
+
+    new ButtonBuilder()
+      .setCustomId(`clanlist_next_${page}`)
+      .setLabel("Next")
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(page >= totalPages - 1),
+  );
+
+  return { embed, buttons };
 }

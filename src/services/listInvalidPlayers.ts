@@ -7,6 +7,7 @@ import {
 } from "discord.js";
 import { findPlayerWithoutActivity } from "../db/queries/players/players";
 import { setPendingPlayersList } from "../cache/pendingPlayersList";
+import { Member } from "@prisma/client";
 
 /**
  * Find players with lastActivty null.
@@ -23,54 +24,11 @@ export async function listInvalidPlayers(interaction: ChatInputCommandInteractio
       return;
     }
 
-    const invalidPlayersTable = [
-      "``` ",
-      "╒═════╤══════════════╤══════╤══════╕",
-      "│  #  │ Player       │ rank │ xcep │",
-      "│     │ name         │      │ tion │",
-      "╞═════╪══════════════╪══════╪══════╡",
-      ...playersList
-        .map((member) => ({
-          name: member.name,
-          rank: member.rank,
-          exception: member.isException ? "yes" : "no",
-        }))
-        .map((member, index) => {
-          const name = member.name.padEnd(12).slice(0, 15);
-          const rank = member.rank!.padEnd(4).slice(0, 4);
-          const exception = member.exception.padEnd(4).slice(0, 4);
-          const id = String(index + 1).padStart(3, " ");
-          return `│ ${id} │ ${name} │ ${rank} │ ${exception} │`;
-        }),
-      "╘═════╧══════════════╧══════╧══════╛",
-      "```",
-    ].join("\n");
+    const { embed, buttons } = buildInvalidListEmbed(playersList);
 
     const replyMessage = await interaction.editReply({
-      embeds: [
-        new EmbedBuilder({
-          title: "Players with no activity recorded",
-          description: invalidPlayersTable,
-          color: 0xff0000,
-          timestamp: new Date(),
-        }),
-      ],
-      components: [
-        new ActionRowBuilder<ButtonBuilder>({
-          components: [
-            new ButtonBuilder({
-              custom_id: "activity_scan",
-              label: "Update activity",
-              style: ButtonStyle.Primary,
-            }),
-            new ButtonBuilder({
-              custom_id: "exp_scan",
-              label: "Update monthly exp",
-              style: ButtonStyle.Primary,
-            }),
-          ],
-        }),
-      ],
+      embeds: [embed],
+      components: [buttons],
     });
 
     setPendingPlayersList(replyMessage.id, playersList);
@@ -81,4 +39,46 @@ export async function listInvalidPlayers(interaction: ChatInputCommandInteractio
       `An error occurred while finding invalid players. ${error}`,
     );
   }
+}
+
+function buildInvalidListEmbed(players: Member[]) {
+  const WIDTH = {
+    id: 3,
+    name: 12,
+    rank: 12,
+  } as const;
+
+  const embedDescription = [
+    "``` ",
+    "╒═════╤══════════════╤══════════════╕",
+    "│  #  │ Player       │ Rank         │",
+    "╞═════╪══════════════╪══════════════╡",
+    ...players.map((member, index) => {
+      const id = String(index + 1).padStart(WIDTH.id);
+      const name = member.name.padEnd(WIDTH.name);
+      const rank = member.rank!.padEnd(WIDTH.rank).slice(0, WIDTH.rank);
+      return `│ ${id} │ ${name} │ ${rank} │`;
+    }),
+    "╘═════╧══════════════╧══════════════╛",
+    "```",
+  ].join("\n");
+
+  const embed = new EmbedBuilder()
+    .setTitle("Invalid Players List")
+    .setDescription(embedDescription)
+    .setColor(0xff0000);
+
+  const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId("activity_scan")
+      .setLabel("Update activity")
+      .setStyle(ButtonStyle.Primary),
+
+    new ButtonBuilder()
+      .setCustomId("exp_scan")
+      .setLabel("Update monthly exp")
+      .setStyle(ButtonStyle.Primary),
+  );
+
+  return { embed, buttons };
 }

@@ -5,13 +5,12 @@ import {
   ButtonStyle,
   ChatInputCommandInteraction,
 } from "discord.js";
-import { calculateDaysSinceLastActivity } from "../util/formatDate";
+import { calcDaysSince } from "../util/formatDate";
 import { findPlayerByActivity } from "../db/queries/players/players";
 import { setPendingPlayersList } from "../cache/pendingPlayersList";
+import { Member } from "@prisma/client";
+import { formatBooleanColumn, formatDaysColumn } from "../util/tableFormatter";
 
-/**
- * List players inactive for a certain number of days.
- */
 export async function listInactives(
   interaction: ChatInputCommandInteraction,
   daysThreshold: number = 30,
@@ -22,16 +21,16 @@ export async function listInactives(
     // Filter out players who:
     // - Last activity is null (never tracked)
     // - Last activity is less than the days threshold
-    // - Monthly exp is true plus Last check (updatedAt) is more than the days threshold
+    // - Monthly exp is true plus Last check is less than the days threshold
     const inactivePlayers = players.filter((player) => {
-      const lastActivity = calculateDaysSinceLastActivity(player.lastActivity);
-      const lastCheck = calculateDaysSinceLastActivity(player.updatedAt);
+      const lastActivity = calcDaysSince(player.lastActivity);
+      const lastExpCheck = calcDaysSince(player.lastCheckForExpGain);
 
       const isActivityTooRecent =
         lastActivity === null || lastActivity <= daysThreshold;
       const isExpTooRecent =
         player.hasMonthlyExpGain === true &&
-        (lastCheck === null || lastCheck <= daysThreshold);
+        (lastExpCheck === null || lastExpCheck <= daysThreshold);
 
       return !isActivityTooRecent && !isExpTooRecent;
     });
@@ -44,74 +43,14 @@ export async function listInactives(
       return;
     }
 
-    // Return all inactive players with how many days theyve been offline, if they got any exp this month, and if they are a GIM
-    // last chek is the last time this user has been updated. Makes it easier to see if the monthly exp gain is relevant or not.
-    const inactivePlayersList = [
-      "```",
-      "╒═════╤══════════════╤═════╤═════╤═════╤═════╤═════╕",
-      "│  #  │ Player       │ Lst │ Lst │ Mth │ Lst │ is  │",
-      "│     │ name         │ act │ chk │ exp │ chk │ gim │",
-      "╞═════╪══════════════╪═════╪═════╪═════╪═════╪═════╡",
-      ...inactivePlayers.map((member, index) => {
-        const id = String(index + 1).padStart(3, " ");
-        const name = member.name.padEnd(12).slice(0, 15);
-        const activity = String(calculateDaysSinceLastActivity(member.lastActivity))
-          .padStart(3)
-          .slice(0, 3);
-        const lastActivityCheck =
-          calculateDaysSinceLastActivity(member.lastCheckForActivity) === null
-            ? "   "
-            : String(
-                calculateDaysSinceLastActivity(member.lastCheckForActivity),
-              ).padStart(3);
-        const lastExpCheck =
-          calculateDaysSinceLastActivity(member.lastCheckForExpGain) === null
-            ? "   "
-            : String(
-                calculateDaysSinceLastActivity(member.lastCheckForExpGain),
-              ).padStart(3);
-        const hasMonthExp =
-          member.hasMonthlyExpGain === null
-            ? "   "
-            : member.hasMonthlyExpGain
-              ? "yes"
-              : "no ";
-        const isGim = member.isGim === null ? "    " : member.isGim ? "yes" : "no ";
-
-        return `│ ${id} │ ${name} │ ${activity} │ ${lastActivityCheck} │ ${hasMonthExp} │ ${lastExpCheck} │ ${isGim} │`;
-      }),
-      "╘═════╧══════════════╧═════╧═════╧═════╧═════╧═════╛",
-      "```",
-    ].join("\n");
+    const { embed, buttons } = buildInactivesListEmbed(
+      inactivePlayers,
+      daysThreshold,
+    );
 
     const replyMessage = await interaction.editReply({
-      embeds: [
-        new EmbedBuilder({
-          title: `Members inactive over ${daysThreshold} days`,
-          description: inactivePlayersList,
-          footer: {
-            text: `Total inactive members: ${inactivePlayers.length}`,
-          },
-          color: 0xff0000,
-          timestamp: new Date(),
-        }),
-      ],
-      components: [
-        new ActionRowBuilder<ButtonBuilder>({
-          components: [
-            new ButtonBuilder({
-              custom_id: "activity_scan",
-              label: "Update activity",
-              style: ButtonStyle.Primary,
-            }),
-            new ButtonBuilder({
-              custom_id: "exp_scan",
-              label: "Update monthly exp",
-              style: ButtonStyle.Primary,
-            }),
-          ],
-        }),
-      ],
+      embeds: [embed],
+      components: [buttons],
     });
 
     setPendingPlayersList(replyMessage.id, inactivePlayers);
@@ -119,8 +58,56 @@ export async function listInactives(
     console.error("Error in listInactives:", error);
 
     await interaction.followUp(
-      `An error occurred while checking inactive members.
-      ${error}`,
+      `An error occurred while checking inactive members. Please check the console for details.`,
     );
   }
+}
+
+function buildInactivesListEmbed(players: Member[], daysThreshold: number) {
+  const WIDTH = {
+    ID: 3,
+    NAME: 12,
+    DAYS: 3,
+    BOOL: 3,
+  } as const;
+
+  const embedDescription = [
+    "```",
+    "╒═════╤══════════════╤═════╤═════╤═════╤═════╤═════╕",
+    "│  #  │ Player       │ Lst │ Lst │ Mth │ Lst │ is  │",
+    "│     │ name         │ act │ chk │ exp │ chk │ gim │",
+    "╞═════╪══════════════╪═════╪═════╪═════╪═════╪═════╡",
+    ...players.map((member, index) => {
+      const id = String(index + 1).padStart(WIDTH.ID);
+      const name = member.name.padEnd(WIDTH.NAME);
+      const activity = formatDaysColumn(member.lastActivity, WIDTH.DAYS);
+      const lstActChk = formatDaysColumn(member.lastCheckForActivity, WIDTH.DAYS);
+      const hasMonthExp = formatBooleanColumn(member.hasMonthlyExpGain, WIDTH.BOOL);
+      const lastExpCheck = formatDaysColumn(member.lastCheckForExpGain, WIDTH.DAYS);
+      const isGim = formatBooleanColumn(member.isGim, WIDTH.BOOL);
+
+      return `│ ${id} │ ${name} │ ${activity} │ ${lstActChk} │ ${hasMonthExp} │ ${lastExpCheck} │ ${isGim} │`;
+    }),
+    "╘═════╧══════════════╧═════╧═════╧═════╧═════╧═════╛",
+    "```",
+  ];
+
+  const embed = new EmbedBuilder()
+    .setTitle(`Members inactive over ${daysThreshold} days`)
+    .setDescription(embedDescription.join("\n"))
+    .setColor(0x3498db);
+
+  const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId("activity_scan")
+      .setLabel("Update activity")
+      .setStyle(ButtonStyle.Primary),
+
+    new ButtonBuilder()
+      .setCustomId("exp_scan")
+      .setLabel("Update monthly exp")
+      .setStyle(ButtonStyle.Primary),
+  );
+
+  return { embed, buttons };
 }

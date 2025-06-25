@@ -19,11 +19,12 @@ export async function findPlayerByActivity(isException: boolean = false) {
   });
 }
 
-export async function findPlayerWithoutActivity(isException: boolean = false) {
+export async function findPlayerWithoutActivity() {
   return prisma.member.findMany({
     where: {
       lastActivity: null,
-      isException,
+      hasMonthlyExpGain: null,
+      isException: false,
     },
 
     orderBy: { id: "asc" },

@@ -30,13 +30,11 @@ export function formatRunescapeDate(dateStr: string) {
   return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
 }
 
-export function calculateDaysSinceLastActivity(
-  activityDate: Date | null,
-): number | null {
-  if (!activityDate) return null;
+export function calcDaysSince(date: Date | null): number | null {
+  if (!date) return null;
 
   const now = new Date();
-  const diffTime = now.getTime() - activityDate.getTime();
+  const diffTime = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
   return diffDays;
