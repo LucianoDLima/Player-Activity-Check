@@ -1,4 +1,4 @@
-import prisma from "../prisma/client.prisma";
+import prisma from "../../../prisma/client.prisma";
 
 export async function findAllPlayers() {
   return prisma.member.findMany({
@@ -19,11 +19,12 @@ export async function findPlayerByActivity(isException: boolean = false) {
   });
 }
 
-export async function findPlayerWithoutActivity(isException: boolean = false) {
+export async function findPlayerWithoutActivity() {
   return prisma.member.findMany({
     where: {
       lastActivity: null,
-      isException,
+      hasMonthlyExpGain: null,
+      isException: false,
     },
 
     orderBy: { id: "asc" },
@@ -76,7 +77,6 @@ export async function updatePlayerLastActivity(
     data: { lastActivity, lastCheckForActivity },
   });
 }
-
 
 export async function updatePlayerMonthlyExpGain(
   name: string,

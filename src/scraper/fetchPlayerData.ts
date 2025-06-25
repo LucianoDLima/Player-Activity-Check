@@ -1,4 +1,4 @@
-import { endpoints } from "../config/endpoints";
+import { endpoints } from "../constants/endpoints";
 
 // Not a scraper, but will leave it here for now as im not sure where to put it
 

@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { createClient } from "./bot/client";
+import { createClient } from "./bot/config/client";
 import { commandsHandler } from "./bot/events";
 
 dotenv.config();

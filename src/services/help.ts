@@ -2,11 +2,12 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ChatInputCommandInteraction,
   EmbedBuilder,
   Message,
 } from "discord.js";
 
-const helpPages: string[][] = [
+const helpPages = [
   [
     "### /populate",
     "Inserts all current clan members into the database",
@@ -44,50 +45,62 @@ const helpPages: string[][] = [
   ],
 ];
 
-export async function getHelpMessage(message: Message) {
+function buildHelpEmbedPage(page: number): {
+  embed: EmbedBuilder;
+  row: ActionRowBuilder<ButtonBuilder>;
+} {
+  const embed = new EmbedBuilder({
+    title: `Available Commands`,
+    description: helpPages[page].join("\n"),
+    color: 0x5865f2,
+    timestamp: new Date(),
+  });
+
+  const row = new ActionRowBuilder<ButtonBuilder>({
+    components: [
+      new ButtonBuilder({
+        custom_id: "prev",
+        label: "Previous",
+        style: ButtonStyle.Secondary,
+        disabled: page === 0,
+      }),
+
+      new ButtonBuilder({
+        custom_id: "page_info",
+        label: `Page ${page + 1}/${helpPages.length}`,
+        style: ButtonStyle.Secondary,
+        disabled: true,
+      }),
+
+      new ButtonBuilder({
+        custom_id: "next",
+        label: "Next",
+        style: ButtonStyle.Primary,
+        disabled: page === helpPages.length - 1,
+      }),
+    ],
+  });
+
+  return { embed, row };
+}
+
+export async function explainCommands(interaction: ChatInputCommandInteraction) {
   let currentPage = 0;
+  let sentMessage: Message | null = null;
 
   async function updateHelpMessage() {
-    const embed = new EmbedBuilder({
-      title: `Available Commands`,
-      description: helpPages[currentPage].join("\n"),
-      color: 0x5865f2,
-      timestamp: new Date(),
-    });
-
-    const row = new ActionRowBuilder<ButtonBuilder>({
-      components: [
-        new ButtonBuilder({
-          custom_id: "prev",
-          label: "⬅️ Previous",
-          style: ButtonStyle.Secondary,
-          disabled: currentPage === 0,
-        }),
-
-        new ButtonBuilder({
-          custom_id: "page_info",
-          label: `Page ${currentPage + 1}/${helpPages.length}`,
-          style: ButtonStyle.Secondary,
-          disabled: true,
-        }),
-
-        new ButtonBuilder({
-          custom_id: "next",
-          label: "Next ➡️",
-          style: ButtonStyle.Primary,
-          disabled: currentPage === helpPages.length - 1,
-        }),
-      ],
-    });
+    const { embed, row } = buildHelpEmbedPage(currentPage);
 
     if (sentMessage) {
       await sentMessage.edit({ embeds: [embed], components: [row] });
     } else {
-      sentMessage = await message.reply({ embeds: [embed], components: [row] });
+      sentMessage = await interaction.editReply({
+        embeds: [embed],
+        components: [row],
+      });
     }
   }
 
-  let sentMessage: Message | null = null;
   await updateHelpMessage();
 
   const collector = sentMessage!.createMessageComponentCollector({
@@ -100,6 +113,7 @@ export async function getHelpMessage(message: Message) {
     } else if (interaction.customId === "prev" && currentPage > 0) {
       currentPage--;
     }
+
     await interaction.deferUpdate();
     await updateHelpMessage();
   });

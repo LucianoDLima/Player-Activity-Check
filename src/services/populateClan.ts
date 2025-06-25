@@ -1,22 +1,18 @@
-import { EmbedBuilder, Message } from "discord.js";
-import prisma from "../../prisma/client.prisma";
-import { scrapeHiscorePage } from "../../scraper/getListOfMembersOfficial";
-import { handleIsException } from "../../util/exceptions";
-import { getNumberOfPages } from "../../scraper/getNumberOfPages";
-import { createPlayer, findPlayerByName } from "../../db/players";
+import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
+import prisma from "../prisma/client.prisma";
+import { scrapeHiscorePage } from "../scraper/getListOfMembersOfficial";
+import { handleIsException } from "../util/exceptions";
+import { getNumberOfPages } from "../scraper/getNumberOfPages";
+import { createPlayer, findPlayerByName } from "../db/queries/players/players";
 
 /**
  * Fetch all members of the clan and insert them, as well as their ranks, into the database.
- *
- * @param message The discord bot message that will be sent.
  */
-export async function populateClan(message: Message) {
-  let discordMessage: Message | null = null;
-
+export async function populateClan(interaction: ChatInputCommandInteraction) {
   try {
     const numberOfPages = await getNumberOfPages();
 
-    discordMessage = await message.reply({
+    await interaction.editReply({
       embeds: [
         new EmbedBuilder({
           title: `Populating list of members`,
@@ -45,7 +41,7 @@ export async function populateClan(message: Message) {
       // Scrape players' name and rank
       const players = (await scrapeHiscorePage(page)).slice(1);
 
-      await discordMessage.edit({
+      await interaction.editReply({
         embeds: [
           new EmbedBuilder({
             title: `Populating list of members`,
@@ -88,7 +84,7 @@ export async function populateClan(message: Message) {
       }
     }
 
-    await discordMessage.edit({
+    await interaction.editReply({
       embeds: [
         new EmbedBuilder({
           title: `Populating list of members`,
@@ -106,9 +102,5 @@ export async function populateClan(message: Message) {
     });
   } catch (error) {
     console.error("Error populating clan:", error);
-
-    if (discordMessage) {
-      discordMessage?.reply(`Error populating clan: ${error}`);
-    }
   }
 }
