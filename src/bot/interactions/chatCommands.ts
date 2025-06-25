@@ -4,6 +4,7 @@ import { explainCommands } from "../../services/help";
 import { populateClan } from "../../services/populateClan";
 import { scanClanActivity } from "../../services/scanClanActivity";
 import { findInvalidPlayers } from "../../services/findInvalidPlayers";
+import { listClanMembers } from "../../services/listClanMembers";
 
 export async function handleChatInputCommand(
   interaction: ChatInputCommandInteraction,
@@ -11,6 +12,11 @@ export async function handleChatInputCommand(
   if (interaction.commandName === "help") {
     await interaction.deferReply();
     await explainCommands(interaction);
+  }
+
+  if (interaction.commandName === "clan") {
+    await interaction.deferReply();
+    await listClanMembers(interaction);
   }
 
   if (interaction.commandName === "populate") {
@@ -43,6 +49,7 @@ export async function handleChatInputCommand(
         .setColor(0xff0000);
 
       await interaction.editReply({ embeds: [embed] });
+
       return;
     }
 

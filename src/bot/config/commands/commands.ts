@@ -25,4 +25,8 @@ export const commandList = [
   new SlashCommandBuilder()
     .setName("invalid")
     .setDescription("Lists players that failed the scan."),
+
+  new SlashCommandBuilder()
+    .setName("clan")
+    .setDescription("Lists all clan members."),
 ];

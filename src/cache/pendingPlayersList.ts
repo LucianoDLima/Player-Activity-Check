@@ -1,3 +1,4 @@
+// TODO: See pendingClanMembers.ts' TODO. Need to delete this one
 import { Member } from "@prisma/client";
 
 const pendingPlayersList = new Map<string, Member[]>();
