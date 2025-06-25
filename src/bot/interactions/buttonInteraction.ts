@@ -1,9 +1,9 @@
 import { ButtonInteraction } from "discord.js";
 import { consumePendingPlayersList } from "../../cache/pendingPlayersList";
-import { checkAllPlayersActivity } from "../../services/checkActivity";
-import { checkExp } from "../../services/checkExp";
+import { handleActivityScan } from "../../services/activityScan";
 import { handleListClanMembersPagination } from "../../services/listClanMembers";
 import { getPendingClanMembers } from "../../cache/pendingClanMembers";
+import { handleMonthlyExpScan } from "../../services/monthlyExpScan";
 
 export async function handleButtonInteraction(interaction: ButtonInteraction) {
   if (interaction.customId === "activity_scan") {
@@ -18,7 +18,7 @@ export async function handleButtonInteraction(interaction: ButtonInteraction) {
     }
 
     await interaction.deferReply();
-    await checkAllPlayersActivity(interaction, playersToScan);
+    await handleActivityScan(interaction, playersToScan);
   }
 
   if (interaction.customId === "exp_scan") {
@@ -33,7 +33,7 @@ export async function handleButtonInteraction(interaction: ButtonInteraction) {
     }
 
     await interaction.deferReply();
-    await checkExp(interaction, playersToScan);
+    await handleMonthlyExpScan(interaction, playersToScan);
   }
 
   if (interaction.customId.startsWith("clanlist_")) {
