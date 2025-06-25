@@ -3,7 +3,7 @@ import { listInactives } from "../../services/listInactives";
 import { explainCommands } from "../../services/help";
 import { populateClan } from "../../services/populateClan";
 import { scanClanActivity } from "../../services/scanClanActivity";
-import { findInvalidPlayers } from "../../services/findInvalidPlayers";
+import { listInvalidPlayers } from "../../services/listInvalidPlayers";
 import { listClanMembers } from "../../services/listClanMembers";
 
 export async function handleChatInputCommand(
@@ -58,6 +58,6 @@ export async function handleChatInputCommand(
 
   if (interaction.commandName === "invalid") {
     await interaction.deferReply();
-    await findInvalidPlayers(interaction);
+    await listInvalidPlayers(interaction);
   }
 }
