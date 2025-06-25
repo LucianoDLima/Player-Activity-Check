@@ -1,5 +1,5 @@
 import puppeteer, { Browser } from "puppeteer";
-import { endpoints } from "../config/endpoints";
+import { endpoints } from "../constants/endpoints";
 
 export async function getNumberOfPages() {
   let browser: Browser | null = null;

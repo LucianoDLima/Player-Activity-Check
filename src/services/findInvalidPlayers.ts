@@ -1,39 +1,24 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message } from "discord.js";
-import { findPlayerWithoutActivity } from "../../db/players";
-import { Member } from "@prisma/client";
-import { setPendingPlayersList } from "../../util/pendingPlayersList";
-
-export type IncludeType = "both" | "exception";
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ChatInputCommandInteraction,
+  EmbedBuilder,
+} from "discord.js";
+import { findPlayerWithoutActivity } from "../db/queries/players/players";
+import { setPendingPlayersList } from "../cache/pendingPlayersList";
 
 /**
  * Find players with lastActivty null.
  * This will most likely be players that either the scraping failed, or have privacy on runemtrics.
- * It also includes players on the exception list if their activity have never been tracked.
- *
- * @param message Message that will be sent through discord bot
- * @param include Type of players to be returned
+ * TODO - REMOVE THIS FUNCIONALITY -> It also includes players on the exception list if their activity have never been tracked.
  */
-export async function findInvalidPlayers(message: Message, include?: IncludeType) {
+export async function findInvalidPlayers(interaction: ChatInputCommandInteraction) {
   try {
-    let nonExceptionPlayers: Member[] = [];
-    let exceptionPlayers: Member[] = [];
-    let playersList: Member[] = [];
+    let playersList = await findPlayerWithoutActivity();
 
-    if (include !== "exception") {
-      nonExceptionPlayers = await findPlayerWithoutActivity(false);
-      playersList.push(...nonExceptionPlayers);
-    }
-
-    if (include === "exception" || include === "both") {
-      exceptionPlayers = await findPlayerWithoutActivity(true);
-      playersList.push(...exceptionPlayers);
-    }
-
-    const nonExceptionPlayersNotFound = nonExceptionPlayers.length === 0;
-    const exceptionPlayersNotFound = exceptionPlayers.length === 0;
-
-    if (nonExceptionPlayersNotFound && exceptionPlayersNotFound) {
-      await message.reply("No members found with invalid activity data.");
+    if (playersList.length === 0) {
+      await interaction.followUp("No members found with invalid activity data.");
 
       return;
     }
@@ -61,7 +46,7 @@ export async function findInvalidPlayers(message: Message, include?: IncludeType
       "```",
     ].join("\n");
 
-    const replyMessage = await message.reply({
+    const replyMessage = await interaction.editReply({
       embeds: [
         new EmbedBuilder({
           title: "Players with no activity recorded",
@@ -92,6 +77,8 @@ export async function findInvalidPlayers(message: Message, include?: IncludeType
   } catch (error) {
     console.error("Error in findInvalidPlayers:", error);
 
-    await message.reply(`An error occurred while finding invalid players. ${error}`);
+    await interaction.followUp(
+      `An error occurred while finding invalid players. ${error}`,
+    );
   }
 }

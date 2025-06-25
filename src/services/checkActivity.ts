@@ -1,7 +1,7 @@
-import { formatName } from "../../util/formatNames";
-import { checkPlayerActivity } from "../../scraper/checkPlayerActivity";
-import { calculateDaysSinceLastActivity } from "../../util/formatDate";
-import { updatePlayerLastActivity } from "../../db/players";
+import { formatName } from "../util/formatNames";
+import { checkPlayerActivity } from "../scraper/checkPlayerActivity";
+import { calculateDaysSinceLastActivity } from "../util/formatDate";
+import { updatePlayerLastActivity } from "../db/queries/players/players";
 import { Member } from "@prisma/client";
 import { ButtonInteraction, EmbedBuilder } from "discord.js"; // Import ButtonInteraction
 
@@ -17,15 +17,6 @@ export async function checkAllPlayersActivity(
 ) {
   try {
     let allPlayers = playerList;
-
-    // If no player list is provided, it means the /inactive command was not used, as when that command is used, it will pass the list of players to this function.
-    // TODO: DONT REMOVE - Reminder to make this work later so I can reuse it for /invalid
-    // if (playerList.length === 0) {
-    //   allPlayers = await findAllPlayers();
-    //   allPlayers.filter((player) => !player.isException);
-
-    //   console.log(`No player list provided, using all players from the database.`);
-    // }
 
     let successfulScan = 0;
     let failedScan = 0;

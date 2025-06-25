@@ -1,22 +1,20 @@
-import { EmbedBuilder, Message } from "discord.js";
-import { formatName } from "../../util/formatNames";
+import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
+import { formatName } from "../util/formatNames";
 import {
   findAllPlayers,
   updatePlayerInfo,
   updatePlayerLastActivity,
-} from "../../db/players";
-import { fetchPlayerData } from "../../scraper/fetchPlayerData";
-import { checkPlayerActivity } from "../../scraper/checkPlayerActivity";
+} from "../db/queries/players/players";
+import { fetchPlayerData } from "../scraper/fetchPlayerData";
+import { checkPlayerActivity } from "../scraper/checkPlayerActivity";
 
 /**
- * Store some data about the player:
+ * Store following data about the player:
  * If they are a gim and their runescape ID through runepixels API.
  * Last activity tracked through scraping runemetrics (can take around 10 to 20 seconds per player).
- *
- * @param message The message the discord bot will send.
- * @param secs How many seconds to wait between each player's activity check. Necessary to avoid rate limiting.
+ * TODO: EXP should be tracked here too if the last activity is > than 30 days.
  */
-export async function scanClanActivity(message: Message, secs: number = 15) {
+export async function scanClanActivity(interaction: ChatInputCommandInteraction) {
   try {
     const unfilteredPlayers = await findAllPlayers();
     const players = unfilteredPlayers.filter(
@@ -24,7 +22,7 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
     );
 
     if (players.length === 0) {
-      await message.reply(
+      await interaction.editReply(
         "No players found in the clan. Please populate the clan first.",
       );
 
@@ -44,7 +42,7 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
     let currentFailedScans = 0;
     let currentPlayerSearchCount = 1;
 
-    const discProgressMessage = await message.reply({
+    const discProgressMessage = await interaction.editReply({
       embeds: [
         new EmbedBuilder({
           title: `Clan Activity Scan`,
@@ -71,7 +69,7 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
         discScanningPlayer = player.name;
 
         const aproxTimeLeft = Math.floor(
-          ((totalRegularPlayers - currentPlayerSearchCount) * (secs + 14)) / 60,
+          ((totalRegularPlayers - currentPlayerSearchCount) * 14) / 60,
         );
 
         discAproxTimeLeft =
@@ -132,8 +130,6 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
             `Updated ${player.name} with last activity: ${playerActivity}`,
           );
         }
-        // Aritificially wait to avoid rate limiting
-        await new Promise((resolve) => setTimeout(resolve, secs * 1000));
       } catch (memberError) {
         console.error(`Error processing ${player.name}:`, memberError);
       }
@@ -158,7 +154,7 @@ export async function scanClanActivity(message: Message, secs: number = 15) {
   } catch (error) {
     console.error("Error scanning clan activity:", error);
 
-    await message.reply(
+    await interaction.followUp(
       `An error occurred while scanning the clan's activity. Please try again later or check the console.`,
     );
   }

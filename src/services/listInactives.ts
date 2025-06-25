@@ -1,20 +1,21 @@
 import {
   EmbedBuilder,
-  Message,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ChatInputCommandInteraction,
 } from "discord.js";
-import { calculateDaysSinceLastActivity } from "../../util/formatDate";
-import { findPlayerByActivity } from "../../db/players";
-import { setPendingPlayersList } from "../../util/pendingPlayersList";
+import { calculateDaysSinceLastActivity } from "../util/formatDate";
+import { findPlayerByActivity } from "../db/queries/players/players";
+import { setPendingPlayersList } from "../cache/pendingPlayersList";
 
 /**
  * List players inactive for a certain number of days.
- *
- * @param message The discord bot message that will be sent.
  */
-export async function listInactives(message: Message, daysThreshold: number = 30) {
+export async function listInactives(
+  interaction: ChatInputCommandInteraction,
+  daysThreshold: number = 30,
+) {
   try {
     const players = await findPlayerByActivity();
 
@@ -35,9 +36,8 @@ export async function listInactives(message: Message, daysThreshold: number = 30
       return !isActivityTooRecent && !isExpTooRecent;
     });
 
-    // If empty array is returned, then it means no players have been inactive for the days threshold
     if (inactivePlayers.length === 0) {
-      await message.reply(
+      await interaction.editReply(
         `No members have been inactive for more than ${daysThreshold} days.`,
       );
 
@@ -84,7 +84,7 @@ export async function listInactives(message: Message, daysThreshold: number = 30
       "```",
     ].join("\n");
 
-    const replyMessage = await message.reply({
+    const replyMessage = await interaction.editReply({
       embeds: [
         new EmbedBuilder({
           title: `Members inactive over ${daysThreshold} days`,
@@ -118,7 +118,7 @@ export async function listInactives(message: Message, daysThreshold: number = 30
   } catch (error) {
     console.error("Error in listInactives:", error);
 
-    await message.reply(
+    await interaction.followUp(
       `An error occurred while checking inactive members.
       ${error}`,
     );

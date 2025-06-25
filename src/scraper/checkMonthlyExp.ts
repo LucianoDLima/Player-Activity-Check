@@ -1,5 +1,5 @@
 import puppeteer, { Browser } from "puppeteer";
-import { endpoints } from "../config/endpoints";
+import { endpoints } from "../constants/endpoints";
 
 // TODO: Maybe new name, this feels like it checks how much exp a player gets monthly
 /**

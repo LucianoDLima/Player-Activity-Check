@@ -1,6 +1,6 @@
 import puppeteer, { Browser } from "puppeteer";
 import { formatRunescapeDate } from "../util/formatDate";
-import { endpoints } from "../config/endpoints";
+import { endpoints } from "../constants/endpoints";
 
 export async function checkPlayerActivity(player: string) {
   let browser: Browser | null = null;
