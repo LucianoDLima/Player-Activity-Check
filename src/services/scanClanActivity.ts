@@ -1,12 +1,12 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import { formatName } from "../util/formatNames";
-import {
-  findAllPlayers,
-  updatePlayerInfo,
-  updatePlayerLastActivity,
-} from "../db/queries/players/players";
+import { findAllPlayers } from "../db/queries/players/findPlayers";
 import { fetchPlayerData } from "../scraper/fetchPlayerData";
 import { checkPlayerActivity } from "../scraper/checkPlayerActivity";
+import {
+  updatePlayerInfo,
+  updatePlayerLastActivity,
+} from "../db/queries/players/updatePlayers";
 
 /**
  * Store following data about the player:

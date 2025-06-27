@@ -5,7 +5,7 @@ import {
   ChatInputCommandInteraction,
   EmbedBuilder,
 } from "discord.js";
-import { findPlayerWithoutActivity } from "../db/queries/players/players";
+import { findPlayerWithoutActivity } from "../db/queries/players/findPlayers";
 import { setPendingPlayersList } from "../cache/pendingPlayersList";
 import { Member } from "@prisma/client";
 

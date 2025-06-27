@@ -7,8 +7,7 @@ import {
   ButtonInteraction,
 } from "discord.js";
 import { setPendingClanMembers } from "../cache/pendingClanMembers";
-import { findAllPlayers } from "../db/queries/players/players";
-import { calcDaysSince } from "../util/formatDate";
+import { findAllPlayers } from "../db/queries/players/findPlayers";
 import { Member } from "@prisma/client";
 import { formatDaysColumn } from "../util/tableFormatter";
 

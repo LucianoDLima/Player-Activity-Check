@@ -1,7 +1,7 @@
 import { Member } from "@prisma/client";
 import { checkMonthlyExp } from "../scraper/checkMonthlyExp";
 import { ButtonInteraction, EmbedBuilder } from "discord.js";
-import { updatePlayerMonthlyExpGain } from "../db/queries/players/players";
+import { updatePlayerMonthlyExpGain } from "../db/queries/players/updatePlayers";
 
 export async function handleMonthlyExpScan(
   interaction: ButtonInteraction,

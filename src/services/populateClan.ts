@@ -1,9 +1,10 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
-import prisma from "../prisma/client.prisma";
 import { scrapeHiscorePage } from "../scraper/getListOfMembersOfficial";
 import { handleIsException } from "../util/exceptions";
 import { getNumberOfPages } from "../scraper/getNumberOfPages";
-import { createPlayer, findPlayerByName } from "../db/queries/players/players";
+import { createPlayer } from "../db/queries/players/createPlayers";
+import { findClan } from "../db/queries/clan/findClan";
+import { findPlayerByName } from "../db/queries/players/findPlayers";
 
 /**
  * Fetch all members of the clan and insert them, as well as their ranks, into the database.
@@ -25,14 +26,11 @@ export async function populateClan(interaction: ChatInputCommandInteraction) {
       ],
     });
 
-    // TODO: Just for creating the clan if it doesn't exist. Should probably be removed, we'll see
-    const clan = await prisma.clan.upsert({
-      where: { id: 7 },
-      update: {},
-      create: {
-        name: "Iron Rivals",
-      },
-    });
+    const clan = await findClan(process.env.GUILD_ID!);
+
+    if (!clan) {
+      throw new Error("Clan not found in the database");
+    }
 
     let skippedCount = 0;
     let addedCount = 0;

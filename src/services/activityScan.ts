@@ -1,8 +1,8 @@
 import { formatName } from "../util/formatNames";
 import { checkPlayerActivity } from "../scraper/checkPlayerActivity";
-import { updatePlayerLastActivity } from "../db/queries/players/players";
 import { Member } from "@prisma/client";
 import { ButtonInteraction, EmbedBuilder } from "discord.js";
+import { updatePlayerLastActivity } from "../db/queries/players/updatePlayers";
 
 /**
  * Moved the logic to scanClanActivity, however this might still be needed.

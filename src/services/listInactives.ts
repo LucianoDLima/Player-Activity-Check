@@ -6,7 +6,7 @@ import {
   ChatInputCommandInteraction,
 } from "discord.js";
 import { calcDaysSince } from "../util/formatDate";
-import { findPlayerByActivity } from "../db/queries/players/players";
+import { findPlayerByActivity } from "../db/queries/players/findPlayers";
 import { setPendingPlayersList } from "../cache/pendingPlayersList";
 import { Member } from "@prisma/client";
 import { formatBooleanColumn, formatDaysColumn } from "../util/tableFormatter";
