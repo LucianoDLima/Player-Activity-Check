@@ -7,9 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model Clan {
   id           Int      @id @default(autoincrement())
-  name         String   @default("Iron Rivals")
+  guildID      String   @unique
+  name         String
   
   members      Member[]
   createdAt    DateTime @default(now())
