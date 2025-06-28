@@ -7,10 +7,10 @@ import {
   ButtonInteraction,
 } from "discord.js";
 import { setPendingClanMembers } from "../cache/pendingClanMembers";
-import { findAllPlayers } from "../db/queries/players/players";
-import { calcDaysSince } from "../util/formatDate";
+import { findAllPlayers } from "../db/queries/players/findPlayers";
 import { Member } from "@prisma/client";
 import { formatDaysColumn } from "../util/tableFormatter";
+import { verifyClanSetup } from "../util/commandGuard";
 
 export type ClanMemberData = Pick<
   Member,
@@ -40,30 +40,32 @@ function parseHiscoreData(data: string) {
 
 export async function listClanMembers(interaction: ChatInputCommandInteraction) {
   try {
-    // TODO: Need to make it dynamic so it can handle multiple clans (1 per server)
-    const clanName = "Iron Rivals";
+    const clan = await verifyClanSetup(interaction);
+    if (!clan) return;
 
-    const allPlayers = await findAllPlayers();
+    const allPlayers = await findAllPlayers(clan.guildID);
 
     if (allPlayers.length === 0) {
-      // TODO: Make it say to check /help (i need to finish that one first)
-      await interaction.editReply(`Could not find any members for ${clanName}.`);
+      await interaction.editReply(`Could not find any members for ${clan.name}.`);
 
       throw new Error(
-        `No members found for clan: ${clanName}. Please check the database.`,
+        `No members found for clan: ${clan.name}. Please check the database.`,
       );
     }
 
     const players: ClanMemberData[] = allPlayers;
 
-    const { embed, buttons } = buildClanListEmbed(players, 0, clanName);
+    const { embed, buttons } = buildClanListEmbed(players, 0, clan.name);
 
     const replyMessage = await interaction.editReply({
       embeds: [embed],
       components: [buttons],
     });
 
-    setPendingClanMembers(replyMessage.id, { members: players, clanName });
+    setPendingClanMembers(replyMessage.id, {
+      members: players,
+      clanName: clan.name,
+    });
   } catch (error) {
     console.error(error);
     await interaction.editReply(

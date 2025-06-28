@@ -5,10 +5,15 @@ import { populateClan } from "../../services/populateClan";
 import { scanClanActivity } from "../../services/scanClanActivity";
 import { listInvalidPlayers } from "../../services/listInvalidPlayers";
 import { listClanMembers } from "../../services/listClanMembers";
+import { handleSetupClan } from "../../services/setupClan";
 
 export async function handleChatInputCommand(
   interaction: ChatInputCommandInteraction,
 ) {
+  if (interaction.commandName === "setup") {
+    await handleSetupClan(interaction);
+  }
+
   if (interaction.commandName === "help") {
     await interaction.deferReply();
     await explainCommands(interaction);

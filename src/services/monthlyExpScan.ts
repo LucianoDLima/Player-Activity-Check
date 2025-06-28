@@ -1,7 +1,8 @@
 import { Member } from "@prisma/client";
 import { checkMonthlyExp } from "../scraper/checkMonthlyExp";
 import { ButtonInteraction, EmbedBuilder } from "discord.js";
-import { updatePlayerMonthlyExpGain } from "../db/queries/players/players";
+import { updatePlayerMonthlyExpGain } from "../db/queries/players/updatePlayers";
+import { verifyClanSetup } from "../util/commandGuard";
 
 export async function handleMonthlyExpScan(
   interaction: ButtonInteraction,
@@ -13,6 +14,9 @@ export async function handleMonthlyExpScan(
   let failedScanPositions = [];
 
   try {
+    const clan = await verifyClanSetup(interaction);
+    if (!clan) return;
+
     for (const player of players) {
       const scannedPlayer = await scanMonthlyExp(player);
 

@@ -5,9 +5,10 @@ import {
   ChatInputCommandInteraction,
   EmbedBuilder,
 } from "discord.js";
-import { findPlayerWithoutActivity } from "../db/queries/players/players";
+import { findPlayerWithoutActivity } from "../db/queries/players/findPlayers";
 import { setPendingPlayersList } from "../cache/pendingPlayersList";
 import { Member } from "@prisma/client";
+import { verifyClanSetup } from "../util/commandGuard";
 
 /**
  * Find players with lastActivty null.
@@ -16,7 +17,10 @@ import { Member } from "@prisma/client";
  */
 export async function listInvalidPlayers(interaction: ChatInputCommandInteraction) {
   try {
-    let playersList = await findPlayerWithoutActivity();
+    const clan = await verifyClanSetup(interaction);
+    if (!clan) return;
+
+    let playersList = await findPlayerWithoutActivity(clan.guildID);
 
     if (playersList.length === 0) {
       await interaction.followUp("No members found with invalid activity data.");
