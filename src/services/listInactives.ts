@@ -10,13 +10,17 @@ import { findPlayerByActivity } from "../db/queries/players/findPlayers";
 import { setPendingPlayersList } from "../cache/pendingPlayersList";
 import { Member } from "@prisma/client";
 import { formatBooleanColumn, formatDaysColumn } from "../util/tableFormatter";
+import { verifyClanSetup } from "../util/commandGuard";
 
 export async function listInactives(
   interaction: ChatInputCommandInteraction,
   daysThreshold: number = 30,
 ) {
   try {
-    const players = await findPlayerByActivity();
+    const clan = await verifyClanSetup(interaction);
+    if (!clan) return;
+
+    const players = await findPlayerByActivity(clan.guildID);
 
     // Filter out players who:
     // - Last activity is null (never tracked)

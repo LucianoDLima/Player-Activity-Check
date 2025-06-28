@@ -3,6 +3,7 @@ import { checkPlayerActivity } from "../scraper/checkPlayerActivity";
 import { Member } from "@prisma/client";
 import { ButtonInteraction, EmbedBuilder } from "discord.js";
 import { updatePlayerLastActivity } from "../db/queries/players/updatePlayers";
+import { verifyClanSetup } from "../util/commandGuard";
 
 /**
  * Moved the logic to scanClanActivity, however this might still be needed.
@@ -14,6 +15,11 @@ export async function handleActivityScan(
   interaction: ButtonInteraction,
   playerList: Member[],
 ) {
+  const clan = await verifyClanSetup(interaction);
+  if (!clan) return;
+
+  await interaction.deferReply();
+
   let players = playerList;
 
   let successfulScan = 0;

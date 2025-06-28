@@ -5,12 +5,16 @@ import { getNumberOfPages } from "../scraper/getNumberOfPages";
 import { createPlayer } from "../db/queries/players/createPlayers";
 import { findClan } from "../db/queries/clan/findClan";
 import { findPlayerByName } from "../db/queries/players/findPlayers";
+import { verifyClanSetup } from "../util/commandGuard";
 
 /**
  * Fetch all members of the clan and insert them, as well as their ranks, into the database.
  */
 export async function populateClan(interaction: ChatInputCommandInteraction) {
   try {
+    const clanSetup = await verifyClanSetup(interaction);
+    if (!clanSetup) return;
+
     const numberOfPages = await getNumberOfPages();
 
     await interaction.editReply({

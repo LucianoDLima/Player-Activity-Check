@@ -7,6 +7,7 @@ import {
   updatePlayerInfo,
   updatePlayerLastActivity,
 } from "../db/queries/players/updatePlayers";
+import { verifyClanSetup } from "../util/commandGuard";
 
 /**
  * Store following data about the player:
@@ -16,7 +17,10 @@ import {
  */
 export async function scanClanActivity(interaction: ChatInputCommandInteraction) {
   try {
-    const unfilteredPlayers = await findAllPlayers();
+    const clan = await verifyClanSetup(interaction);
+    if (!clan) return;
+
+    const unfilteredPlayers = await findAllPlayers(clan.guildID);
     const players = unfilteredPlayers.filter(
       (p) => !p.runescapeId || p.lastActivity === null,
     );
