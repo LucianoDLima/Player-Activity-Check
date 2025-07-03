@@ -1,19 +1,19 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import { createClan } from "../db/queries/clan/createClan";
 import { findClan } from "../db/queries/clan/findClan";
-import { verifyAdminPermissions } from "../util/commandGuard";
+import { verifyAdminPermissions } from "../util/guardCommands";
 import { Clan } from "@prisma/client";
 
 export async function handleSetupClan(interaction: ChatInputCommandInteraction) {
   const isAdmin = await verifyAdminPermissions(interaction);
   if (!isAdmin) return;
 
+  await interaction.deferReply();
+
   const guildId = interaction.guildId;
   if (!guildId) {
     throw new Error("Interaction doesn' have a guild ID.");
   }
-
-  await interaction.deferReply();
 
   try {
     const existingClan = await findClan(guildId);

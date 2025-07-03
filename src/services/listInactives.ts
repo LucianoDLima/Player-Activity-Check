@@ -7,10 +7,11 @@ import {
 } from "discord.js";
 import { calcDaysSince } from "../util/formatDate";
 import { findPlayerByActivity } from "../db/queries/players/findPlayers";
-import { setPendingPlayersList } from "../cache/pendingPlayersList";
 import { Member } from "@prisma/client";
 import { formatBooleanColumn, formatDaysColumn } from "../util/tableFormatter";
-import { verifyClanSetup } from "../util/commandGuard";
+import { verifyClanSetup } from "../util/guardCommands";
+import { handleIsException } from "../util/exceptions";
+import { setPendingClanMembers } from "../cache/pendingClanMembers";
 
 export async function listInactives(
   interaction: ChatInputCommandInteraction,
@@ -47,8 +48,13 @@ export async function listInactives(
       return;
     }
 
+    // Remove staff from the list
+    const filteredInactiveMembers = inactivePlayers.filter(
+      (player) => !handleIsException(player.rank!),
+    );
+
     const { embed, buttons } = buildInactivesListEmbed(
-      inactivePlayers,
+      filteredInactiveMembers,
       daysThreshold,
     );
 
@@ -57,7 +63,10 @@ export async function listInactives(
       components: [buttons],
     });
 
-    setPendingPlayersList(replyMessage.id, inactivePlayers);
+    setPendingClanMembers(replyMessage.id, {
+      members: filteredInactiveMembers,
+      clanName: clan.name,
+    });
   } catch (error) {
     console.error("Error in listInactives:", error);
 

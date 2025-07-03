@@ -8,7 +8,7 @@ import {
 import { findPlayerWithoutActivity } from "../db/queries/players/findPlayers";
 import { setPendingPlayersList } from "../cache/pendingPlayersList";
 import { Member } from "@prisma/client";
-import { verifyClanSetup } from "../util/commandGuard";
+import { verifyClanSetup } from "../util/guardCommands";
 
 /**
  * Find players with lastActivty null.
@@ -19,6 +19,8 @@ export async function listInvalidPlayers(interaction: ChatInputCommandInteractio
   try {
     const clan = await verifyClanSetup(interaction);
     if (!clan) return;
+
+    await interaction.deferReply();
 
     let playersList = await findPlayerWithoutActivity(clan.guildID);
 

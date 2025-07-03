@@ -10,7 +10,7 @@ import { setPendingClanMembers } from "../cache/pendingClanMembers";
 import { findAllPlayers } from "../db/queries/players/findPlayers";
 import { Member } from "@prisma/client";
 import { formatDaysColumn } from "../util/tableFormatter";
-import { verifyClanSetup } from "../util/commandGuard";
+import { verifyClanSetup } from "../util/guardCommands";
 
 export type ClanMemberData = Pick<
   Member,
@@ -22,26 +22,12 @@ export type ClanMemberData = Pick<
   | "lastCheckForExpGain"
 >;
 
-// TODO: NO LONGER NEEDED. But i can use for the new way to scrape all members. Was using it to format all data from the hiscores page
-function parseHiscoreData(data: string) {
-  return data
-    .split("\n")
-    .slice(1)
-    .filter((line) => line.trim() !== "")
-    .map((line) => {
-      const [name, rank, totalXP] = line.split(",");
-      return {
-        name: name.replace(/�/g, " "),
-        rank,
-        totalXP: parseInt(totalXP, 10) || 0,
-      };
-    });
-}
-
 export async function listClanMembers(interaction: ChatInputCommandInteraction) {
   try {
     const clan = await verifyClanSetup(interaction);
     if (!clan) return;
+
+    await interaction.deferReply();
 
     const allPlayers = await findAllPlayers(clan.guildID);
 

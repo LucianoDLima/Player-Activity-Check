@@ -13,6 +13,13 @@ export async function findAllPlayers(guildID: Clan["guildID"]) {
   });
 }
 
+export async function findManyPlayers(clanId: Clan["id"]) {
+  return await prisma.member.findMany({
+    where: { clanId },
+    select: { name: true },
+  });
+}
+
 export async function findPlayerByActivity(
   guildID: Clan["guildID"],
   isException: boolean = false,

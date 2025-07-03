@@ -85,6 +85,8 @@ function buildHelpEmbedPage(page: number): {
 }
 
 export async function explainCommands(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply();
+
   let currentPage = 0;
   let sentMessage: Message | null = null;
 

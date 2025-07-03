@@ -3,7 +3,7 @@ import { checkPlayerActivity } from "../scraper/checkPlayerActivity";
 import { Member } from "@prisma/client";
 import { ButtonInteraction, EmbedBuilder } from "discord.js";
 import { updatePlayerLastActivity } from "../db/queries/players/updatePlayers";
-import { verifyClanSetup } from "../util/commandGuard";
+import { verifyClanSetup } from "../util/guardCommands";
 
 /**
  * Moved the logic to scanClanActivity, however this might still be needed.

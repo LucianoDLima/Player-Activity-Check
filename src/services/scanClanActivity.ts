@@ -7,7 +7,7 @@ import {
   updatePlayerInfo,
   updatePlayerLastActivity,
 } from "../db/queries/players/updatePlayers";
-import { verifyClanSetup } from "../util/commandGuard";
+import { verifyClanSetup } from "../util/guardCommands";
 
 /**
  * Store following data about the player:
@@ -20,10 +20,10 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
     const clan = await verifyClanSetup(interaction);
     if (!clan) return;
 
+    await interaction.deferReply();
+
     const unfilteredPlayers = await findAllPlayers(clan.guildID);
-    const players = unfilteredPlayers.filter(
-      (p) => !p.runescapeId || p.lastActivity === null,
-    );
+    const players = unfilteredPlayers.filter((p) => p.lastActivity === null);
 
     if (players.length === 0) {
       await interaction.editReply(
@@ -105,27 +105,27 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
 
         const formattedName = formatName(player.name);
 
-        const playerData = await fetchPlayerData(formattedName);
+        // const playerData = await fetchPlayerData(formattedName);
 
         const playerActivity = await checkPlayerActivity(formattedName);
 
-        if (!playerData && !playerActivity) {
+        if (!playerActivity) {
           console.error(`Failed to fetch data for ${player.name}`);
 
           currentFailedScans++;
           continue;
         }
 
-        const isGim = playerData?.isGim;
-        const runescapeId = playerData?.runescapeId;
+        // const isGim = playerData?.isGim;
+        // const runescapeId = playerData?.runescapeId;
 
-        if (runescapeId || isGim) {
-          await updatePlayerInfo(player.name, isGim!, runescapeId!);
+        // if (runescapeId || isGim) {
+        //   await updatePlayerInfo(player.name, isGim!, runescapeId!);
 
-          console.log(
-            `${player.name}: ${isGim ? "GIM" : "Ironman"} player, RS3 ID: ${runescapeId}`,
-          );
-        }
+        //   console.log(
+        //     `${player.name}: ${isGim ? "GIM" : "Ironman"} player, RS3 ID: ${runescapeId}`,
+        //   );
+        // }
 
         if (playerActivity) {
           await updatePlayerLastActivity(player.name, playerActivity);

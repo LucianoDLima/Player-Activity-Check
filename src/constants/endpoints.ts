@@ -3,7 +3,7 @@ export const endpoints = {
     STATS:
       "https://secure.runescape.com/m=clan-hiscores/compare.ws?clanName=Iron+Rivals",
     MEMBERS:
-      "https://secure.runescape.com/m=clan-hiscores/members.ws?clanId=394326&ranking=-1&pageSize=45&pageNum=",
+      "http://services.runescape.com/m=clan-hiscores/members_lite.ws?clanName=",
   },
   player: {
     RUNEMETRICS_WEB: "https://apps.runescape.com/runemetrics/app/overview/player/",

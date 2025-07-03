@@ -15,23 +15,18 @@ export async function handleChatInputCommand(
   }
 
   if (interaction.commandName === "help") {
-    await interaction.deferReply();
     await explainCommands(interaction);
   }
 
   if (interaction.commandName === "clan") {
-    await interaction.deferReply();
     await listClanMembers(interaction);
   }
 
   if (interaction.commandName === "populate") {
-    await interaction.deferReply();
     await populateClan(interaction);
   }
 
   if (interaction.commandName === "scan") {
-    await interaction.deferReply();
-
     await scanClanActivity(interaction);
   }
 
@@ -62,7 +57,6 @@ export async function handleChatInputCommand(
   }
 
   if (interaction.commandName === "invalid") {
-    await interaction.deferReply();
     await listInvalidPlayers(interaction);
   }
 }

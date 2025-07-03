@@ -7,6 +7,7 @@ import { findClan } from "../db/queries/clan/findClan";
 
 /**
  * Check if a clan has been set up for the server.
+ * If so,return the clan object.
  */
 export async function verifyClanSetup(
   interaction: ChatInputCommandInteraction | ButtonInteraction,
@@ -41,7 +42,7 @@ export async function verifyClanSetup(
 }
 
 /**
- * Make sure only members with admin perms can run a command
+ * Make sure only members with admin perms can run a command.
  */
 export async function verifyAdminPermissions(
   interaction: ChatInputCommandInteraction,
