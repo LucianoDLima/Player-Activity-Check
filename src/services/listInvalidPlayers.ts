@@ -13,7 +13,6 @@ import { verifyClanSetup } from "../util/guardCommands";
 /**
  * Find players with lastActivty null.
  * This will most likely be players that either the scraping failed, or have privacy on runemtrics.
- * TODO - REMOVE THIS FUNCIONALITY -> It also includes players on the exception list if their activity have never been tracked.
  */
 export async function listInvalidPlayers(interaction: ChatInputCommandInteraction) {
   try {

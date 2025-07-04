@@ -13,9 +13,6 @@ export async function populateClan(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
     const data = await parseClanMembersData(clan);
-    if (!data) {
-      await interaction.editReply("No data received from the clan hiscores.");
-    }
 
     const { id: clanId } = clan;
     const { members } = data;

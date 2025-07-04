@@ -101,8 +101,6 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
 
         const formattedName = formatName(player.name);
 
-        // const playerData = await fetchPlayerData(formattedName);
-
         const playerActivity = await scrapePlayerActivity(formattedName);
 
         if (!playerActivity) {
@@ -111,17 +109,6 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
           currentFailedScans++;
           continue;
         }
-
-        // const isGim = playerData?.isGim;
-        // const runescapeId = playerData?.runescapeId;
-
-        // if (runescapeId || isGim) {
-        //   await updatePlayerInfo(player.name, isGim!, runescapeId!);
-
-        //   console.log(
-        //     `${player.name}: ${isGim ? "GIM" : "Ironman"} player, RS3 ID: ${runescapeId}`,
-        //   );
-        // }
 
         if (playerActivity) {
           await updatePlayerLastActivity(player.name, playerActivity);

@@ -1,4 +1,4 @@
-import { calcDaysSince } from "./formatDate";
+import { calcDaysSince } from "./dates";
 
 export function formatDaysColumn(
   date: Date | null | undefined,

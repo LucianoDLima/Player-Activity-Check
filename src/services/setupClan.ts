@@ -12,7 +12,7 @@ export async function handleSetupClan(interaction: ChatInputCommandInteraction) 
 
   const guildId = interaction.guildId;
   if (!guildId) {
-    throw new Error("Interaction doesn' have a guild ID.");
+    throw new Error("Interaction doesn't have a guild ID.");
   }
 
   try {
@@ -26,13 +26,6 @@ export async function handleSetupClan(interaction: ChatInputCommandInteraction) 
     }
 
     const clan = await handleClanCreation(interaction, guildId);
-    if (!clan) {
-      interaction.editReply(
-        "An error occurred while setting up the clan. Please check the logs.",
-      );
-
-      return;
-    }
 
     const { embed } = buildSuccessEmbed(clan);
 

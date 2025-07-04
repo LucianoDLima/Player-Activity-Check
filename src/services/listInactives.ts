@@ -5,12 +5,12 @@ import {
   ButtonStyle,
   ChatInputCommandInteraction,
 } from "discord.js";
-import { calcDaysSince } from "../util/formatDate";
+import { calcDaysSince } from "../util/dates";
 import { findPlayerByActivity } from "../db/queries/players/findPlayers";
 import { Member } from "@prisma/client";
 import { formatBooleanColumn, formatDaysColumn } from "../util/tableFormatter";
 import { verifyClanSetup } from "../util/guardCommands";
-import { handleIsException } from "../util/exceptions";
+import { checkIfStaff } from "../util/exceptions";
 import { setPendingClanMembers } from "../cache/pendingClanMembers";
 
 export async function listInactives(
@@ -50,7 +50,7 @@ export async function listInactives(
 
     // Remove staff from the list
     const filteredInactiveMembers = inactivePlayers.filter(
-      (player) => !handleIsException(player.rank!),
+      (player) => !checkIfStaff(player.rank!),
     );
 
     const { embed, buttons } = buildInactivesListEmbed(

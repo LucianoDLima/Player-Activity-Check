@@ -1,5 +1,5 @@
 import puppeteer, { Browser } from "puppeteer";
-import { formatRunescapeDate } from "../util/formatDate";
+import { formatRunescapeDate } from "../util/dates";
 import { endpoints } from "../constants/endpoints";
 
 /**
