@@ -1,5 +1,5 @@
 import { Member } from "@prisma/client";
-import { checkMonthlyExp } from "../scraper/checkMonthlyExp";
+import { scrapeMonthlyExp } from "../scraper/scrapeMonthlyExp";
 import { ButtonInteraction, EmbedBuilder } from "discord.js";
 import { updatePlayerMonthlyExpGain } from "../db/queries/players/updatePlayers";
 import { verifyClanSetup } from "../util/guardCommands";
@@ -50,7 +50,7 @@ export async function handleMonthlyExpScan(
 
 async function scanMonthlyExp(player: Member) {
   try {
-    const gainThisMonth = await checkMonthlyExp(player.name);
+    const gainThisMonth = await scrapeMonthlyExp(player.name);
 
     if (gainThisMonth) {
       const numericExp = parseInt(gainThisMonth.replace(/[^\d]/g, ""), 10);
