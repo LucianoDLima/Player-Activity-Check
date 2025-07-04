@@ -1,12 +1,10 @@
 import puppeteer, { Browser } from "puppeteer";
 import { endpoints } from "../constants/endpoints";
 
-// TODO: Maybe new name, this feels like it checks how much exp a player gets monthly
 /**
  * Scrape the Runemetrics page to check if the player has gained exp this month.
- * @param player player name
  */
-export async function checkMonthlyExp(player: string) {
+export async function scrapeMonthlyExp(player: string) {
   let browser: Browser | null = null;
 
   try {
@@ -18,7 +16,7 @@ export async function checkMonthlyExp(player: string) {
     await page.goto(url, { waitUntil: "domcontentloaded" });
 
     await page.waitForSelector("[data-title=\"'Gain this month'\"]", {
-      timeout: 15000,
+      timeout: 17500,
     });
 
     const gainThisMonth = await page.evaluate(() => {

@@ -1,5 +1,5 @@
 import { formatName } from "../util/formatNames";
-import { checkPlayerActivity } from "../scraper/checkPlayerActivity";
+import { scrapePlayerActivity } from "../scraper/scrapePlayerActivity";
 import { Member } from "@prisma/client";
 import { ButtonInteraction, EmbedBuilder } from "discord.js";
 import { updatePlayerLastActivity } from "../db/queries/players/updatePlayers";
@@ -72,7 +72,7 @@ export async function handleActivityScan(
 async function scanPlayer(player: Member) {
   try {
     const formattedName = formatName(player.name);
-    const lastActivity = await checkPlayerActivity(formattedName);
+    const lastActivity = await scrapePlayerActivity(formattedName);
 
     if (lastActivity) {
       await updatePlayerLastActivity(player.name, lastActivity);

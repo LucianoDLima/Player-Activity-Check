@@ -1,8 +1,7 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import { formatName } from "../util/formatNames";
 import { findAllPlayers } from "../db/queries/players/findPlayers";
-import { fetchPlayerData } from "../scraper/fetchPlayerData";
-import { checkPlayerActivity } from "../scraper/checkPlayerActivity";
+import { scrapePlayerActivity } from "../scraper/scrapePlayerActivity";
 import {
   updatePlayerInfo,
   updatePlayerLastActivity,
@@ -107,7 +106,7 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
 
         // const playerData = await fetchPlayerData(formattedName);
 
-        const playerActivity = await checkPlayerActivity(formattedName);
+        const playerActivity = await scrapePlayerActivity(formattedName);
 
         if (!playerActivity) {
           console.error(`Failed to fetch data for ${player.name}`);
