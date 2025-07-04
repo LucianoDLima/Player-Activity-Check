@@ -20,11 +20,11 @@ export async function handleActivityScan(
 
   await interaction.deferReply();
 
-  let players = playerList;
+  const players = playerList;
 
   let successfulScan = 0;
   let failedScan = 0;
-  let failedScanPositions = [];
+  const failedScanPositions = [];
   let currentLoop = 1;
 
   try {

@@ -22,7 +22,7 @@ export async function listInvalidPlayers(interaction: ChatInputCommandInteractio
 
     await interaction.deferReply();
 
-    let playersList = await findPlayerWithoutActivity(clan.guildID);
+    const playersList = await findPlayerWithoutActivity(clan.guildID);
 
     if (playersList.length === 0) {
       await interaction.followUp("No members found with invalid activity data.");

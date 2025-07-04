@@ -66,6 +66,7 @@ export async function handleListClanMembersPagination(
   members: ClanMemberData[],
   clanName: string,
 ) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, direction, currentPageStr] = interaction.customId.split("_");
   const currentPage = parseInt(currentPageStr, 10);
   const nextPage = direction === "next" ? currentPage + 1 : currentPage - 1;

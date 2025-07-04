@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 import { verifyClanSetup } from "../util/guardCommands";
 import { endpoints } from "../constants/endpoints";
 import { findManyPlayers } from "../db/queries/players/findPlayers";

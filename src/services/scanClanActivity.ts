@@ -2,10 +2,7 @@ import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import { formatName } from "../util/formatNames";
 import { findAllPlayers } from "../db/queries/players/findPlayers";
 import { scrapePlayerActivity } from "../scraper/scrapePlayerActivity";
-import {
-  updatePlayerInfo,
-  updatePlayerLastActivity,
-} from "../db/queries/players/updatePlayers";
+import { updatePlayerLastActivity } from "../db/queries/players/updatePlayers";
 import { verifyClanSetup } from "../util/guardCommands";
 
 /**

@@ -11,7 +11,7 @@ export async function handleMonthlyExpScan(
   let successCount = 0;
   let failCount = 0;
   let currentLoop = 1;
-  let failedScanPositions = [];
+  const failedScanPositions = [];
 
   try {
     const clan = await verifyClanSetup(interaction);
