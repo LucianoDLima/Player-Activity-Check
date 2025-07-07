@@ -1,4 +1,4 @@
-import { ButtonInteraction } from "discord.js";
+import { ButtonInteraction, MessageFlags } from "discord.js";
 import { consumePendingPlayersList } from "../../cache/pendingPlayersList";
 import { handleActivityScan } from "../../services/activityScan";
 import { handleListClanMembersPagination } from "../../services/listClanMembers";
@@ -12,7 +12,7 @@ export async function handleButtonInteraction(interaction: ButtonInteraction) {
     if (!playersToScan) {
       await interaction.reply({
         content: "This button has expired or the data is no longer available.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -27,7 +27,7 @@ export async function handleButtonInteraction(interaction: ButtonInteraction) {
     if (!playersToScan) {
       await interaction.reply({
         content: "This button has expired or the data is no longer available.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -41,7 +41,7 @@ export async function handleButtonInteraction(interaction: ButtonInteraction) {
     if (!state) {
       await interaction.reply({
         content: "This clan list has expired. Please run /clan again.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
 
       return;
