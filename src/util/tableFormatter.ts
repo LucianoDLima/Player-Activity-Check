@@ -1,9 +1,6 @@
 import { calcDaysSince } from "./dates";
 
-export function formatDaysColumn(
-  date: Date | null | undefined,
-  width: number,
-): string {
+export function formatDaysColumn(date: Date | null | undefined, width: number) {
   if (!date) {
     return " ".repeat(width);
   }

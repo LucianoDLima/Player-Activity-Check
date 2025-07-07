@@ -31,7 +31,7 @@ export function formatRunescapeDate(dateStr: string) {
 /**
  * Calculate the number of days since a given date
  */
-export function calcDaysSince(date: Date | null): number | null {
+export function calcDaysSince(date: Date | null) {
   if (!date) return null;
 
   const now = new Date();
