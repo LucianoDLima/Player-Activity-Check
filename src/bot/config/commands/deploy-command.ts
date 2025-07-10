@@ -24,9 +24,15 @@ const rest = new REST({ version: "10" }).setToken(token);
       `Started refreshing ${commandList.length} application (/) commands.`,
     );
 
-    const data = await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
+    // PROD
+    const data = await rest.put(Routes.applicationCommands(clientId), {
       body: commandList,
     });
+
+    // DEV
+    // const data = await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
+    //   body: commandList,
+    // });
 
     if (Array.isArray(data)) {
       console.log(`Successfully reloaded ${data.length} application (/) commands.`);

@@ -1,6 +1,7 @@
 import {
   ButtonInteraction,
   ChatInputCommandInteraction,
+  MessageFlags,
   PermissionsBitField,
 } from "discord.js";
 import { findClan } from "../db/queries/clan/findClan";
@@ -25,13 +26,13 @@ export async function verifyClanSetup(
       await interaction.followUp({
         content:
           "This server has not been set up yet. An administrator must run `/setup` first.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     } else {
       await interaction.reply({
         content:
           "This server has not been set up yet. An administrator must run `/setup` first.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -55,12 +56,12 @@ export async function verifyAdminPermissions(
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({
         content: "You must be an administrator to run this command.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     } else {
       await interaction.reply({
         content: "You must be an administrator to run this command.",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
     }
 

@@ -6,14 +6,13 @@ import {
   EmbedBuilder,
 } from "discord.js";
 import { findPlayerWithoutActivity } from "../db/queries/players/findPlayers";
-import { setPendingPlayersList } from "../cache/pendingPlayersList";
 import { Member } from "@prisma/client";
 import { verifyClanSetup } from "../util/guardCommands";
+import { setClanMembersCache } from "../cache/ClanMembersCache";
 
 /**
  * Find players with lastActivty null.
  * This will most likely be players that either the scraping failed, or have privacy on runemtrics.
- * TODO - REMOVE THIS FUNCIONALITY -> It also includes players on the exception list if their activity have never been tracked.
  */
 export async function listInvalidPlayers(interaction: ChatInputCommandInteraction) {
   try {
@@ -22,7 +21,7 @@ export async function listInvalidPlayers(interaction: ChatInputCommandInteractio
 
     await interaction.deferReply();
 
-    let playersList = await findPlayerWithoutActivity(clan.guildID);
+    const playersList = await findPlayerWithoutActivity(clan.guildID);
 
     if (playersList.length === 0) {
       await interaction.followUp("No members found with invalid activity data.");
@@ -37,7 +36,10 @@ export async function listInvalidPlayers(interaction: ChatInputCommandInteractio
       components: [buttons],
     });
 
-    setPendingPlayersList(replyMessage.id, playersList);
+    setClanMembersCache(replyMessage.id, {
+      clanName: clan.name,
+      members: playersList,
+    });
   } catch (error) {
     console.error("Error in findInvalidPlayers:", error);
 

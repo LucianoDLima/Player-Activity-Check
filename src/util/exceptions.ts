@@ -1,10 +1,8 @@
 /**
- * Handle exceptions based on player rank
- *
- * @param playerRank - The rank of the player
+ * Return true to indicate that the player is is from the staff ranks
  */
-export function handleIsException(playerRank: string) {
-  const exceptionRanks = [
+export function checkIfStaff(playerRank: string) {
+  const staffRanks = [
     "Owner",
     "Deputy Owner",
     "Overseer",
@@ -14,7 +12,7 @@ export function handleIsException(playerRank: string) {
     "General",
   ];
 
-  const isException = exceptionRanks.includes(playerRank);
+  const isException = staffRanks.includes(playerRank);
 
   return isException;
 }

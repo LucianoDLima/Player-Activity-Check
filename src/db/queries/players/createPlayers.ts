@@ -21,7 +21,7 @@ export async function createPlayers(
   players: { name: string; rank: string; clanId: Clan["id"] }[],
 ) {
   return await prisma.member.createMany({
-    data: players, // Just pass the data directly
+    data: players,
     skipDuplicates: true,
   });
 }

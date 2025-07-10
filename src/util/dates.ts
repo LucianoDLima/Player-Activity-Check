@@ -1,7 +1,5 @@
 /**
  * Format a Runescape date string into a prisma compatible date
- *
- * @param dateStr The date string scraped from the Runescape site (like 1-Jan-2023 00:00:00)
  */
 export function formatRunescapeDate(dateStr: string) {
   const parts = dateStr.split(" ");
@@ -30,7 +28,10 @@ export function formatRunescapeDate(dateStr: string) {
   return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
 }
 
-export function calcDaysSince(date: Date | null): number | null {
+/**
+ * Calculate the number of days since a given date
+ */
+export function calcDaysSince(date: Date | null) {
   if (!date) return null;
 
   const now = new Date();

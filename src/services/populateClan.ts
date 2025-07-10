@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 import { verifyClanSetup } from "../util/guardCommands";
 import { endpoints } from "../constants/endpoints";
 import { findManyPlayers } from "../db/queries/players/findPlayers";
@@ -13,9 +13,6 @@ export async function populateClan(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
     const data = await parseClanMembersData(clan);
-    if (!data) {
-      await interaction.editReply("No data received from the clan hiscores.");
-    }
 
     const { id: clanId } = clan;
     const { members } = data;
