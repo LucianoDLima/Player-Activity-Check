@@ -5,29 +5,20 @@ import {
   ActionRowBuilder,
   ButtonStyle,
   ButtonInteraction,
+  MessageFlags,
 } from "discord.js";
-import { setPendingClanMembers } from "../cache/pendingClanMembers";
+import { setClanMembersCache } from "../cache/ClanMembersCache";
 import { findAllPlayers } from "../db/queries/players/findPlayers";
 import { Member } from "@prisma/client";
 import { formatDaysColumn } from "../util/tableFormatter";
 import { verifyClanSetup } from "../util/guardCommands";
-
-export type ClanMemberData = Pick<
-  Member,
-  | "name"
-  | "rank"
-  | "lastActivity"
-  | "lastCheckForActivity"
-  | "hasMonthlyExpGain"
-  | "lastCheckForExpGain"
->;
 
 export async function listClanMembers(interaction: ChatInputCommandInteraction) {
   try {
     const clan = await verifyClanSetup(interaction);
     if (!clan) return;
 
-    await interaction.deferReply();
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const allPlayers = await findAllPlayers(clan.guildID);
 
@@ -39,7 +30,7 @@ export async function listClanMembers(interaction: ChatInputCommandInteraction) 
       );
     }
 
-    const players: ClanMemberData[] = allPlayers;
+    const players = allPlayers;
 
     const { embed, buttons } = buildClanListEmbed(players, 0, clan.name);
 
@@ -48,7 +39,7 @@ export async function listClanMembers(interaction: ChatInputCommandInteraction) 
       components: [buttons],
     });
 
-    setPendingClanMembers(replyMessage.id, {
+    setClanMembersCache(replyMessage.id, {
       members: players,
       clanName: clan.name,
     });
@@ -63,7 +54,7 @@ export async function listClanMembers(interaction: ChatInputCommandInteraction) 
 // TODO: I think i can make this reusable for when I want to paginate other lists
 export async function handleListClanMembersPagination(
   interaction: ButtonInteraction,
-  members: ClanMemberData[],
+  members: Member[],
   clanName: string,
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -76,7 +67,7 @@ export async function handleListClanMembersPagination(
 }
 
 function buildClanListEmbed(
-  members: ClanMemberData[],
+  members: Member[],
   currentPage: number,
   clanName: string,
 ) {

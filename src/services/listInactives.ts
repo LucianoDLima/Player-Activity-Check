@@ -11,7 +11,7 @@ import { Member } from "@prisma/client";
 import { formatBooleanColumn, formatDaysColumn } from "../util/tableFormatter";
 import { verifyClanSetup } from "../util/guardCommands";
 import { checkIfStaff } from "../util/exceptions";
-import { setPendingClanMembers } from "../cache/pendingClanMembers";
+import { setClanMembersCache } from "../cache/ClanMembersCache";
 
 export async function listInactives(
   interaction: ChatInputCommandInteraction,
@@ -63,7 +63,7 @@ export async function listInactives(
       components: [buttons],
     });
 
-    setPendingClanMembers(replyMessage.id, {
+    setClanMembersCache(replyMessage.id, {
       members: filteredInactiveMembers,
       clanName: clan.name,
     });

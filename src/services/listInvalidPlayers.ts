@@ -6,9 +6,9 @@ import {
   EmbedBuilder,
 } from "discord.js";
 import { findPlayerWithoutActivity } from "../db/queries/players/findPlayers";
-import { setPendingPlayersList } from "../cache/pendingPlayersList";
 import { Member } from "@prisma/client";
 import { verifyClanSetup } from "../util/guardCommands";
+import { setClanMembersCache } from "../cache/ClanMembersCache";
 
 /**
  * Find players with lastActivty null.
@@ -36,7 +36,10 @@ export async function listInvalidPlayers(interaction: ChatInputCommandInteractio
       components: [buttons],
     });
 
-    setPendingPlayersList(replyMessage.id, playersList);
+    setClanMembersCache(replyMessage.id, {
+      clanName: clan.name,
+      members: playersList,
+    });
   } catch (error) {
     console.error("Error in findInvalidPlayers:", error);
 
