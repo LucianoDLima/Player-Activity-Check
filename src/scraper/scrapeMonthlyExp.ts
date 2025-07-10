@@ -11,7 +11,7 @@ export async function scrapeMonthlyExp(player: string) {
     browser = await puppeteer.launch();
     const page = await browser.newPage();
 
-    const url = `${endpoints.player.RUNEMETRICS_EXP}${player}/-1`;
+    const url = `${endpoints.player.EXP}${player}/-1`;
 
     await page.goto(url, { waitUntil: "domcontentloaded" });
 

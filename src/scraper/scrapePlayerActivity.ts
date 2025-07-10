@@ -12,7 +12,7 @@ export async function scrapePlayerActivity(player: string) {
     browser = await puppeteer.launch();
     const page = await browser.newPage();
 
-    const url = `${endpoints.player.RUNEMETRICS_WEB}${player}`;
+    const url = `${endpoints.player.ACTIVITY}${player}`;
 
     await page.goto(url, { waitUntil: "domcontentloaded" });
 
