@@ -3,6 +3,7 @@ import { createClan } from "../db/queries/clan/createClan";
 import { findClan } from "../db/queries/clan/findClan";
 import { verifyAdminPermissions } from "../util/guardCommands";
 import { Clan } from "@prisma/client";
+import { embedCons } from "../constants/embeds";
 
 export async function handleSetupClan(interaction: ChatInputCommandInteraction) {
   const isAdmin = await verifyAdminPermissions(interaction);
@@ -18,26 +19,43 @@ export async function handleSetupClan(interaction: ChatInputCommandInteraction) 
   try {
     const existingClan = await findClan(guildId);
     if (existingClan) {
-      interaction.editReply(
-        `This server is already set up with the clan: **${existingClan.name}**.`,
-      );
+      await interaction.editReply({
+        embeds: [
+          new EmbedBuilder()
+            .setDescription(
+              [
+                `This server is already set up with the clan: **${existingClan.name}**.`,
+                "\n",
+                "If the clan name is incorrect, it will not be able to pull data from the runemetrics.",
+                "Please contact the developer as a command to update the name has not been set up yet.",
+              ].join("\n"),
+            )
+            .setColor(embedCons.color.INFO),
+        ],
+      });
 
       return;
     }
 
     const clan = await handleClanCreation(interaction, guildId);
 
-    const { embed } = buildSuccessEmbed(clan);
+    const { successEmbed } = buildSuccessEmbed(clan);
 
-    interaction.editReply({
-      embeds: [embed],
+    await interaction.editReply({
+      embeds: [successEmbed],
     });
   } catch (error) {
     console.error("Error during clan setup:", error);
 
-    await interaction.editReply(
-      "An error occurred while setting up the clan. Please check the logs.",
-    );
+    await interaction.editReply({
+      embeds: [
+        new EmbedBuilder()
+          .setDescription(
+            "Something went wrong while setting up the clan. Please send this error to the developer.",
+          )
+          .setColor(embedCons.color.ERROR),
+      ],
+    });
   }
 }
 
@@ -56,14 +74,16 @@ function buildSuccessEmbed(clan: Clan) {
     `Please use the following commands to manage your clan:`,
     `- \`/populate\`: Automatically populate the clan with members from your clan.`,
     `- \`/scan\`: Update activity status for all members.`,
+    '  - This command will take a while. Be patient.',
     `- \`/inactive\`: List members who have been inactive for a certain number of days.`,
     `- \`/invalid\`: List players who may have private profiles.`,
     `And if you want to learn more about the new commands, run \`/help\`!`,
   ];
 
-  const embed = new EmbedBuilder()
+  const successEmbed = new EmbedBuilder()
     .setTitle("Clan created!")
-    .setDescription(embedDescription.join("\n"));
+    .setDescription(embedDescription.join("\n"))
+    .setColor(embedCons.color.SUCCCESS);
 
-  return { embed };
+  return { successEmbed };
 }
