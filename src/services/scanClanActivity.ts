@@ -42,7 +42,7 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
     let currentFailedScans = 0;
     let currentPlayerSearchCount = 1;
 
-    const discProgressMessage = await interaction.editReply({
+    await interaction.editReply({
       embeds: [
         new EmbedBuilder({
           title: `Clan Activity Scan`,
@@ -77,7 +77,7 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
             ? "less than 1 min."
             : `${aproxTimeLeft} mins.`;
 
-        await discProgressMessage.edit({
+        await interaction.editReply({
           embeds: [
             new EmbedBuilder({
               title: `Clan Activity Scan`,
@@ -124,7 +124,7 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
       currentPlayerSearchCount++;
     }
 
-    await discProgressMessage.reply({
+    await interaction.followUp({
       embeds: [
         new EmbedBuilder({
           title: `Clan Activity Scan`,
