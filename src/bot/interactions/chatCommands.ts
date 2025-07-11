@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import { listInactives } from "../../services/listInactives";
-import { explainCommands } from "../../services/help";
+import { explainCommands2 } from "../../services/help";
 import { populateClan } from "../../services/populateClan";
 import { scanClanActivity } from "../../services/scanClanActivity";
 import { listInvalidPlayers } from "../../services/listInvalidPlayers";
@@ -15,7 +15,7 @@ export async function handleChatInputCommand(
   }
 
   if (interaction.commandName === "help") {
-    await explainCommands(interaction);
+    await explainCommands2(interaction);
   }
 
   if (interaction.commandName === "clan") {
