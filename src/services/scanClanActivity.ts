@@ -1,9 +1,10 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
+import { ChatInputCommandInteraction, EmbedBuilder, MessageFlags } from "discord.js";
 import { formatName } from "../util/formatNames";
 import { findAllPlayers } from "../db/queries/players/findPlayers";
 import { scrapePlayerActivity } from "../scraper/scrapePlayerActivity";
 import { updatePlayerLastActivity } from "../db/queries/players/updatePlayers";
 import { verifyClanSetup } from "../util/guardCommands";
+import { embedCons } from "../constants/embeds";
 
 /**
  * Store following data about the player:
@@ -22,9 +23,11 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
     const players = unfilteredPlayers.filter((p) => p.lastActivity === null);
 
     if (players.length === 0) {
-      await interaction.editReply(
-        "No players found in the clan. Please populate the clan first.",
-      );
+      const { errorEmbed } = buildErrorEmbed();
+
+      await interaction.editReply({
+        embeds: [errorEmbed],
+      });
 
       return;
     }
@@ -40,36 +43,15 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
     let discAproxTimeLeft = "**calculating...**";
 
     let currentFailedScans = 0;
-    let currentPlayerSearchCount = 1;
-
-    await interaction.editReply({
-      embeds: [
-        new EmbedBuilder({
-          title: `Clan Activity Scan`,
-          description: [
-            `### Updating players data`,
-            `Please wait a moment, this may take a while. Players on the exception list will not be scammed.`,
-            `- Total members: **${allPlayers}**`,
-            `- On exception list: **${totalExceptionPlayers}**`,
-            `- Players in queue: **0/${totalRegularPlayers}**`,
-            `- Scanning player: **${discScanningPlayer}**`,
-            `- Failed scans: **${currentFailedScans}**`,
-            `*In case of failed scans, check the console.*`,
-          ].join("\n"),
-          footer: {
-            text: `Approx time left: ${discAproxTimeLeft}`,
-          },
-          color: 0xff0000,
-        }),
-      ],
-    });
+    let currentSuccessScans = 0;
+    let currentPlayerSearchCount = 0;
 
     for (const player of regularPlayers) {
       try {
         discScanningPlayer = player.name;
 
         const aproxTimeLeft = Math.floor(
-          ((totalRegularPlayers - currentPlayerSearchCount) * 14) / 60,
+          ((totalRegularPlayers - (currentPlayerSearchCount + 1)) * 14) / 60,
         );
 
         discAproxTimeLeft =
@@ -77,26 +59,19 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
             ? "less than 1 min."
             : `${aproxTimeLeft} mins.`;
 
+        const { progressEmbed } = buildProgressEmbed({
+          totalPlayers: allPlayers,
+          exceptionPlayers: totalExceptionPlayers,
+          searchCount: currentPlayerSearchCount,
+          regularPlayers: totalRegularPlayers,
+          playerScanning: discScanningPlayer,
+          successScans: currentSuccessScans,
+          failedScans: currentFailedScans,
+          timeLeft: discAproxTimeLeft,
+        });
+
         await interaction.editReply({
-          embeds: [
-            new EmbedBuilder({
-              title: `Clan Activity Scan`,
-              description: [
-                `### Updating players data`,
-                `Please wait a moment, this may take a while. Players on the exception list will not be scammed.`,
-                `- Total members: **${allPlayers}**`,
-                `- On exception list: **${totalExceptionPlayers}**`,
-                `- Players in queue: **${currentPlayerSearchCount}/${totalRegularPlayers}**`,
-                `- Scanning player: **${discScanningPlayer}**`,
-                `- Failed scans: **${currentFailedScans}**`,
-                `*In case of failed scans, check the console.*`,
-              ].join("\n"),
-              footer: {
-                text: `Approx time left: ${discAproxTimeLeft}`,
-              },
-              color: 0xff0000,
-            }),
-          ],
+          embeds: [progressEmbed],
         });
 
         const formattedName = formatName(player.name);
@@ -107,6 +82,7 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
           console.error(`Failed to fetch data for ${player.name}`);
 
           currentFailedScans++;
+          currentPlayerSearchCount++;
           continue;
         }
 
@@ -121,22 +97,26 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
         console.error(`Error processing ${player.name}:`, memberError);
       }
 
+      currentSuccessScans++;
       currentPlayerSearchCount++;
     }
 
     await interaction.followUp({
-      embeds: [
-        new EmbedBuilder({
-          title: `Clan Activity Scan`,
-          description: [
-            `### Update completed`,
-            `- You can run /invactive to see the list of inactive players.`,
-            `- You can run /invalid to see the list of players the scan failed.`,
-            `- You can run /scan again to try updating only the players that failed.`,
-          ].join("\n"),
-          color: 0x00ff00,
-        }),
-      ],
+      content: `Clan activity scan completed**!`,
+      flags: MessageFlags.Ephemeral,
+    });
+
+    const { successEmbed } = buildSuccessEmbed({
+      totalPlayers: allPlayers,
+      exceptionPlayers: totalExceptionPlayers,
+      searchCount: currentPlayerSearchCount,
+      regularPlayers: totalRegularPlayers,
+      successScans: currentSuccessScans,
+      failedScans: currentFailedScans,
+    });
+
+    await interaction.editReply({
+      embeds: [successEmbed],
     });
   } catch (error) {
     console.error("Error scanning clan activity:", error);
@@ -145,4 +125,77 @@ export async function scanClanActivity(interaction: ChatInputCommandInteraction)
       `An error occurred while scanning the clan's activity. Please try again later or check the console.`,
     );
   }
+}
+
+interface IProgressEmbed {
+  totalPlayers: number;
+  exceptionPlayers: number;
+  searchCount: number;
+  regularPlayers: number;
+  playerScanning: string;
+  failedScans: number;
+  successScans: number;
+  timeLeft: string;
+}
+
+function buildProgressEmbed(state: IProgressEmbed) {
+  const embedDescription = [
+    `### Updating players data`,
+    `Please wait a moment, this may take a while. Staff and players on the exception list will not be scanned.`,
+    `- Total members: **${state.totalPlayers}**`,
+    `- Staff/exception list: **${state.exceptionPlayers}**`,
+    `- Scanning player: **${state.playerScanning}**`,
+    `- Players scanned: **${state.searchCount}/${state.regularPlayers}**`,
+    `  - Successful scans: **${state.successScans}/${state.searchCount}**`,
+    `  - Failed scans: **${state.failedScans}/${state.searchCount}**`,
+    `*After scanning is complete, run \`/invalid\` to see players with failed scans.*`,
+  ];
+
+  const progressEmbed = new EmbedBuilder()
+    .setTitle("Clan activity scan")
+    .setDescription(embedDescription.join("\n"))
+    .setColor(embedCons.color.PROGRESS)
+    .setFooter({
+      text: `Approx time left: ${state.timeLeft}`,
+    });
+
+  return { progressEmbed };
+}
+
+function buildSuccessEmbed(
+  state: Omit<IProgressEmbed, "timeLeft" | "playerScanning">,
+) {
+  const embedDescription = [
+    `### Update completed`,
+    `- You can run \`/inactive\` to see the list of inactive players.`,
+    `- You can run \`/invalid\` to see the list of players the scan failed.`,
+    `- You can run \`/scan\` again to try updating only the players that failed or newly added members.`,
+    "",
+    "### Log",
+    `- Total members: **${state.totalPlayers}**`,
+    `- Staff/exception list: **${state.exceptionPlayers}**`,
+    `- Players scanned: **${state.searchCount}/${state.regularPlayers}**`,
+    `  - Successful scans: **${state.successScans}/${state.searchCount}**`,
+    `  - Failed scans: **${state.failedScans}/${state.searchCount}**`,
+  ];
+
+  const successEmbed = new EmbedBuilder()
+    .setTitle("Clan activity scan")
+    .setDescription(embedDescription.join("\n"))
+    .setColor(embedCons.color.SUCCCESS);
+
+  return { successEmbed };
+}
+
+function buildErrorEmbed() {
+  const embedDescription = [
+    `### No players found`,
+    `Please run \`/populate\` first to add members to the clan.`,
+  ];
+
+  const errorEmbed = new EmbedBuilder()
+    .setDescription(embedDescription.join("\n"))
+    .setColor(embedCons.color.ERROR);
+
+  return { errorEmbed };
 }
