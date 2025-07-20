@@ -44,7 +44,7 @@ const helpPages = [
     "- Estimated time: Immediate.",
   ],
 ];
-
+ 
 function buildHelpEmbedPage(page: number): {
   embed: EmbedBuilder;
   row: ActionRowBuilder<ButtonBuilder>;
@@ -82,6 +82,12 @@ function buildHelpEmbedPage(page: number): {
   });
 
   return { embed, row };
+}
+
+export async function explainCommands2(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply();
+
+  await interaction.editReply({content: "Ask Guava. He broke the help command."})
 }
 
 export async function explainCommands(interaction: ChatInputCommandInteraction) {

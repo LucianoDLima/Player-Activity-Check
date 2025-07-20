@@ -1,9 +1,10 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import { verifyClanSetup } from "../util/guardCommands";
 import { endpoints } from "../constants/endpoints";
 import { findManyPlayers } from "../db/queries/players/findPlayers";
 import { createPlayers } from "../db/queries/players/createPlayers";
 import { Clan } from "@prisma/client";
+import { embedCons } from "../constants/embeds";
 
 export async function populateClan(interaction: ChatInputCommandInteraction) {
   try {
@@ -31,13 +32,24 @@ export async function populateClan(interaction: ChatInputCommandInteraction) {
       }));
 
     if (newMembers.length === 0) {
-      await interaction.editReply(`No new members to add to the clan ${clan.name}.`);
+      await interaction.editReply({
+        embeds: [
+          new EmbedBuilder()
+            .setDescription(`No new members to add to **${clan.name}**.`)
+            .setColor(embedCons.color.INFO),
+        ],
+      });
+
       return;
     }
 
     const created = await createPlayers(newMembers);
 
-    console.log(`Added ${created.count} new members to the clan ${clan.name}.`);
+    const { successEmbed } = buildSuccessEmbed(created.count);
+
+    await interaction.editReply({
+      embeds: [successEmbed],
+    });
   } catch (error) {
     console.error("Error populating clan:", error);
 
@@ -80,4 +92,18 @@ export async function parseClanMembersData(clan: Clan) {
     });
 
   return { members };
+}
+
+function buildSuccessEmbed(members: number) {
+  const embedDescription = [
+    `Clan has been successfully populated with **${members} members**!`,
+    `You can now run \`/scan\` to update their activity.`,
+  ];
+
+  const successEmbed = new EmbedBuilder()
+    .setTitle("Clan Population Success")
+    .setDescription(embedDescription.join("\n"))
+    .setColor(embedCons.color.SUCCCESS);
+
+  return { successEmbed };
 }
